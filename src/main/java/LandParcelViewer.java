@@ -8,19 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LandParcelViewer {
-    Polygon polygon;
 
-    public void AddLandParcel(LandParcel landParcel){
-        polygon = new Polygon();
+    public Polygon GetLandParcelPolygon(LandParcel landParcel){
+        Polygon polygon = new Polygon();
         List<Double> points = new ArrayList<Double>();
         for(int i = 0; i < landParcel.polygon.size();i++) {
             points.add(landParcel.polygon.get(i).getX());
             points.add(landParcel.polygon.get(i).getY());
         }
         polygon.getPoints().addAll(points);
-    }
-
-    public void Launch(String[] args){
-        //launch(args);
+        return polygon;
     }
 }

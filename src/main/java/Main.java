@@ -1,7 +1,9 @@
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Polygon;
@@ -13,8 +15,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+class DragContext {
+
+    double mouseAnchorX;
+    double mouseAnchorY;
+
+    double translateAnchorX;
+    double translateAnchorY;
+
+}
+
 
 public class Main extends Application {
+    private DragContext sceneDragContext = new DragContext();
     @Override
     public void start(Stage stage) throws Exception {
         ArrayList<landParcel> landParcels = new ArrayList<>();
@@ -57,6 +70,45 @@ public class Main extends Application {
                     scale *= 1.2;
                 root.setScaleX(scale);
                 root.setScaleY(scale);
+            }
+        });
+
+        scene.setOnMousePressed(new EventHandler<MouseEvent>() {
+
+            public void handle(MouseEvent event) {
+
+                // right mouse button => panning
+                if( !event.isSecondaryButtonDown())
+                    return;
+
+                sceneDragContext.mouseAnchorX = event.getSceneX();
+                sceneDragContext.mouseAnchorY = event.getSceneY();
+
+                sceneDragContext.translateAnchorX = root.getTranslateX();
+                sceneDragContext.translateAnchorY = root.getTranslateY();
+
+            }
+
+        });
+
+        scene.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            public void handle(MouseEvent event) {
+
+                // left mouse button => dragging
+                if( !event.isPrimaryButtonDown())
+                    return;
+
+                double scale = root.getScaleX();
+
+                root.translateXProperty();
+
+                event.getX();
+
+                root.setTranslateX(sceneDragContext.translateAnchorX + (( event.getSceneX() - sceneDragContext.mouseAnchorX) / scale));
+                root.setTranslateY(sceneDragContext.translateAnchorY + (( event.getSceneY() - sceneDragContext.mouseAnchorY) / scale));
+
+                event.consume();
+
             }
         });
 

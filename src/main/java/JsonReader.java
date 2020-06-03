@@ -8,11 +8,16 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.locationtech.jts.math.Vector2D;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class JsonReader {
+
+    ArrayList<Vector2D> temp = new ArrayList<Vector2D>();
+    ArrayList<landParcel> parcels = new ArrayList<>();
 
     public JsonReader(String file){
 
@@ -24,6 +29,7 @@ public class JsonReader {
             JSONArray land_usages = (JSONArray) parcels.get("land_usages");
 
             land_usages.forEach(land -> parsePolygons((JSONObject) land));
+
         } catch (ParseException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -31,15 +37,26 @@ public class JsonReader {
         }
     }
 
-    private static void parsePolygons (JSONObject landUsage){
+    private void parsePolygons (JSONObject landUsage){
         JSONArray polygon = (JSONArray) landUsage.get("polygon");
         polygon.forEach(line -> parseVertices((JSONObject) line));
+        ArrayList<Vector2D> tempArray = new ArrayList<>();
+        tempArray.addAll(temp);
+        landParcel newPolygon = new landParcel(tempArray);
+        parcels.add(newPolygon);
+        temp.clear();
     }
 
-    private static void parseVertices (JSONObject polygon){
+    private void parseVertices (JSONObject polygon){
         double xPoint = (double) polygon.get("x");
         System.out.println("x: "+xPoint);
         double zPoint = (double) polygon.get("z");
         System.out.println("z: "+zPoint);
+        Vector2D tempVector = new Vector2D(xPoint, zPoint);
+        this.temp.add(tempVector);
+    }
+
+    public ArrayList<landParcel> getParcels() {
+        return parcels;
     }
 }

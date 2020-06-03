@@ -12,23 +12,10 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         ArrayList<landParcel> landParcels = new ArrayList<>();
+        JsonReader reader = new JsonReader("/LandParcelOptimization/input/roadnetwork.json");
 
-        landParcel parcel = new landParcel();
 
-        parcel.polygon.add(new Vector2D(200,200));
-        parcel.polygon.add(new Vector2D(300,200));
-        parcel.polygon.add(new Vector2D(200,300));
-
-        landParcels.add(parcel);
-
-        landParcel parcelA = new landParcel();
-
-        parcelA.polygon.add(new Vector2D(400,200));
-        parcelA.polygon.add(new Vector2D(500,200));
-        parcelA.polygon.add(new Vector2D(600,300));
-        parcelA.polygon.add(new Vector2D(500,400));
-
-        landParcels.add(parcelA);
+        landParcels = reader.getParcels();
 
         //Creating a Group object
         Group root = new Group();
@@ -54,7 +41,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        //JsonReader reader = new JsonReader("/LandParcelOptimization/input/simpleroadnetwork.json");
+
         launch(args);
     }
 }

@@ -3,6 +3,8 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image ;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
@@ -11,6 +13,7 @@ import javafx.stage.Stage;
 import javafx.scene.paint.Color;
 
 import java.awt.*;
+import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -40,6 +43,10 @@ public class Main extends Application {
 
         //Creating a Group object
         Pane root = new Pane();
+
+        FileInputStream input = new FileInputStream(currentDir.toAbsolutePath() + "/input/images/water_map.png");
+        Image image = new Image(input);
+        root.getChildren().add(new ImageView(image));
 
         ArrayList<Color> colorList = new ArrayList<Color>();
         colorList.add(Color.BLUE);
@@ -78,7 +85,7 @@ public class Main extends Application {
             public void handle(MouseEvent event) {
 
                 // right mouse button => panning
-                if( !event.isSecondaryButtonDown())
+                if( !event.isPrimaryButtonDown())
                     return;
 
                 sceneDragContext.mouseAnchorX = event.getSceneX();
@@ -93,19 +100,12 @@ public class Main extends Application {
 
         scene.setOnMouseDragged(new EventHandler<MouseEvent>() {
             public void handle(MouseEvent event) {
-
-                // left mouse button => dragging
+                // right mouse button => panning
                 if( !event.isPrimaryButtonDown())
                     return;
 
-                double scale = root.getScaleX();
-
-                root.translateXProperty();
-
-                event.getX();
-
-                root.setTranslateX(sceneDragContext.translateAnchorX + (( event.getSceneX() - sceneDragContext.mouseAnchorX) / scale));
-                root.setTranslateY(sceneDragContext.translateAnchorY + (( event.getSceneY() - sceneDragContext.mouseAnchorY) / scale));
+                root.setTranslateX(sceneDragContext.translateAnchorX + event.getSceneX() - sceneDragContext.mouseAnchorX);
+                root.setTranslateY(sceneDragContext.translateAnchorY + event.getSceneY() - sceneDragContext.mouseAnchorY);
 
                 event.consume();
 

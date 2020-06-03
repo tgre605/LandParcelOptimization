@@ -1,6 +1,4 @@
 import org.locationtech.jts.math.Vector2D;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class landParcel {
@@ -14,5 +12,6 @@ public class landParcel {
     public landParcel(){
 
     }
+
 
 }

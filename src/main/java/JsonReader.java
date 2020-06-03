@@ -3,7 +3,6 @@
 
     Should probably use org.json for reading
  */
-import org.json.*;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -49,9 +48,7 @@ public class JsonReader {
 
     private void parseVertices (JSONObject polygon){
         double xPoint = (double) polygon.get("x");
-        System.out.println("x: "+xPoint);
         double zPoint = (double) polygon.get("z");
-        System.out.println("z: "+zPoint);
         Vector2D tempVector = new Vector2D(xPoint, zPoint);
         this.temp.add(tempVector);
     }

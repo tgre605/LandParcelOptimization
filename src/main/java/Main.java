@@ -3,7 +3,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
-import org.locationtech.jts.math.Vector2D;
+import javafx.scene.paint.Color;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +16,6 @@ public class Main extends Application {
         ArrayList<landParcel> landParcels = new ArrayList<>();
 
         Path currentDir = Paths.get(".");
-        System.out.println();
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
 
 
@@ -25,10 +24,19 @@ public class Main extends Application {
         //Creating a Group object
         Group root = new Group();
 
+        ArrayList<Color> colorList = new ArrayList<Color>();
+        colorList.add(Color.BLUE);
+        colorList.add(Color.CORNFLOWERBLUE);
+        colorList.add(Color.DODGERBLUE);
+        colorList.add(Color.DARKBLUE);
+        colorList.add(Color.DEEPSKYBLUE);
+
         for(int i= 0; i < landParcels.size(); i++){
             //Get polygon land parcel polygon
             Polygon polygon = new landParcelViewer().GetLandParcelPolygon(landParcels.get(i));
 
+            polygon.setFill(colorList.get((int)(Math.random() * 4)));
+            polygon.setStroke(Color.BLACK);
             root.getChildren().add(polygon);
         }
 

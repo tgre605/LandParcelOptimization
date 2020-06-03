@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        LandParcel parcel = new LandParcel();
+        landParcel parcel = new landParcel();
 
         parcel.polygon.add(new Vector2D(200,200));
         parcel.polygon.add(new Vector2D(300,200));
@@ -19,7 +19,7 @@ public class Main extends Application {
 
 
         //Get polygon land parcel polygon
-        Polygon polygon = new LandParcelViewer().GetLandParcelPolygon(parcel);
+        Polygon polygon = new landParcelViewer().GetLandParcelPolygon(parcel);
 
         //Creating a Group object
         Group root = new Group(polygon);
@@ -38,7 +38,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        //JsonReader reader = new JsonReader("/LandParcelOptimization/input/roadnetwork.json");
+        JsonReader reader = new JsonReader("/LandParcelOptimization/input/simpleroadnetwork.json");
         launch(args);
     }
 }

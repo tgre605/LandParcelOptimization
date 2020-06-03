@@ -7,9 +7,9 @@ import javafx.scene.shape.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LandParcelViewer {
+public class landParcelViewer {
 
-    public Polygon GetLandParcelPolygon(LandParcel landParcel){
+    public Polygon GetLandParcelPolygon(landParcel landParcel){
         Polygon polygon = new Polygon();
         List<Double> points = new ArrayList<Double>();
         for(int i = 0; i < landParcel.polygon.size();i++) {

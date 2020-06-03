@@ -5,6 +5,8 @@ import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 import org.locationtech.jts.math.Vector2D;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 
@@ -12,7 +14,10 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         ArrayList<landParcel> landParcels = new ArrayList<>();
-        JsonReader reader = new JsonReader("/LandParcelOptimization/input/roadnetwork.json");
+
+        Path currentDir = Paths.get(".");
+        System.out.println();
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
 
 
         landParcels = reader.getParcels();
@@ -41,7 +46,6 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-
         launch(args);
     }
 }

@@ -41,7 +41,7 @@ public class Main extends Application {
         boundingBoxes.add( new LandParcelOptimizer().BoundingBoxOptimization(landParcels.get(0)));
 
         SceneRenderer sceneRenderer = new SceneRenderer();
-        sceneRenderer.start(stage, landParcels, boundingBoxes);
+        sceneRenderer.start(stage, landParcels, boundingBoxes, landParcels.get(0).polygon.getCoordinates());
     }
 
     public static void main(String[] args) {

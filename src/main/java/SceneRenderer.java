@@ -6,9 +6,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.stage.Stage;
 
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 
 import java.io.FileInputStream;
@@ -32,7 +34,8 @@ public class SceneRenderer {
         return output;
     }
 
-    public void start(Stage stage, ArrayList<landParcel> landParcels, ArrayList<org.locationtech.jts.geom.Polygon> polygons) throws Exception {
+
+    public void start(Stage stage, ArrayList<landParcel> landParcels, ArrayList<org.locationtech.jts.geom.Polygon> polygons, Coordinate[] coordinates ) throws Exception {
         //Creating a Group object
         Pane root = new Pane();
 
@@ -56,6 +59,15 @@ public class SceneRenderer {
 
             polygon.setFill(colorList.get((int)(Math.random() * 4)));
             root.getChildren().add(polygon);
+        }
+
+        for(int i= 0; i < coordinates.length; i++){
+            Circle circle = new Circle();
+            circle.setCenterX(coordinates[i].x);
+            circle.setCenterY(coordinates[i].y);
+            circle.setRadius(0.5);
+            circle.setStroke(Color.RED);
+            root.getChildren().add(circle);
         }
 
         //Creating a scene object

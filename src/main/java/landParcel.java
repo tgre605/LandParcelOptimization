@@ -1,17 +1,17 @@
-import org.locationtech.jts.math.Vector2D;
+import org.locationtech.jts.geom.*;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class landParcel {
+    public Polygon polygon = new Polygon(null, null, new GeometryFactory());
+    public ArrayList<building> buildingFootprints = new ArrayList<>();
 
-    public ArrayList<Vector2D> polygon = new ArrayList<Vector2D>();
-
-    public landParcel(ArrayList<Vector2D> vertices) {
-        this.polygon = vertices;
+   public landParcel(ArrayList<Coordinate> vertices) {
+        polygon = new GeometryFactory().createPolygon(vertices.toArray(new Coordinate[0]));
     }
 
     public landParcel(){
 
     }
-
-
 }

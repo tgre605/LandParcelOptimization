@@ -7,6 +7,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.math.Vector2D;
 
 import java.io.FileReader;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 
 public class JsonReader {
 
-    ArrayList<Vector2D> temp = new ArrayList<Vector2D>();
+    ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
     ArrayList<landParcel> parcels = new ArrayList<>();
 
     public JsonReader(String file){
@@ -39,9 +40,9 @@ public class JsonReader {
     private void parsePolygons (JSONObject landUsage){
         JSONArray polygon = (JSONArray) landUsage.get("polygon");
         polygon.forEach(line -> parseVertices((JSONObject) line));
-        ArrayList<Vector2D> tempArray = new ArrayList<>();
-        tempArray.addAll(temp);
-        landParcel newPolygon = new landParcel(tempArray);
+        // JTS requires list coordinates to have start and end coordinates to be the same
+        temp.add(temp.get(0));
+        landParcel newPolygon = new landParcel(temp);
         parcels.add(newPolygon);
         temp.clear();
     }
@@ -49,7 +50,7 @@ public class JsonReader {
     private void parseVertices (JSONObject polygon){
         double xPoint = (double) polygon.get("x");
         double zPoint = (double) polygon.get("z");
-        Vector2D tempVector = new Vector2D(xPoint, zPoint);
+        Coordinate tempVector = new Coordinate(xPoint, zPoint);
         this.temp.add(tempVector);
     }
 

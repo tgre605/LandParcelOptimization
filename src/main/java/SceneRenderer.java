@@ -1,3 +1,5 @@
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -12,7 +14,9 @@ import javafx.stage.Stage;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.math.Vector2D;
 
+import java.awt.geom.Rectangle2D;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +25,7 @@ import java.util.List;
 
 public class SceneRenderer {
     private DragContext sceneDragContext = new DragContext();
+    private Vector2D mousePosition = new Vector2D();
 
 
     public Polygon ConvertPolygon(org.locationtech.jts.geom.Polygon polygon){
@@ -76,16 +81,31 @@ public class SceneRenderer {
         scene.setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
             public void handle(ScrollEvent event) {
+
                 double scale = root.getScaleX();
+                double centerX = (root.getTranslateX() + root.getWidth())/2;
+                double centerY = (root.getTranslateY() + root.getHeight())/2;
                 if (event.getDeltaY() < 0) {
                     scale /= 1.2;
+
+                    root.setTranslateX(root.getTranslateX() + (centerX - mousePosition.getX()) * -0.4);
+                    root.setTranslateY(root.getTranslateY() + (centerY - mousePosition.getY()) * -0.4);
                 }
                 else {
+
+                    root.setTranslateX(root.getTranslateX() + (centerX - mousePosition.getX()) * 0.4);
+                    root.setTranslateY(root.getTranslateY() + (centerY - mousePosition.getY()) * 0.4);
                     scale *= 1.2;
                 }
                 root.setScaleX(scale);
                 root.setScaleY(scale);
+            }
+        });
 
+        scene.setOnMouseMoved(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(final MouseEvent event) {
+                mousePosition = new Vector2D(event.getX(), event.getY());
             }
         });
 
@@ -102,7 +122,6 @@ public class SceneRenderer {
 
                 sceneDragContext.translateAnchorX = root.getTranslateX();
                 sceneDragContext.translateAnchorY = root.getTranslateY();
-
             }
 
         });

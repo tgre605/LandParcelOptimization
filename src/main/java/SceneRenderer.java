@@ -28,11 +28,11 @@ public class SceneRenderer {
     private Vector2D mousePosition = new Vector2D();
 
 
-    public Polygon ConvertPolygon(org.locationtech.jts.geom.Polygon polygon){
+    public Polygon ConvertPolygon(Geometry geometry){
         List<Double> points = new ArrayList<Double>();
-        for(int i = 0; i < polygon.getNumPoints();i++) {
-            points.add(polygon.getCoordinates()[i].getX());
-            points.add(polygon.getCoordinates()[i].getY());
+        for(int i = 0; i < geometry.getNumPoints();i++) {
+            points.add(geometry.getCoordinates()[i].getX());
+            points.add(geometry.getCoordinates()[i].getY());
         }
         Polygon output = new Polygon();
         output.getPoints().addAll(points);
@@ -40,7 +40,7 @@ public class SceneRenderer {
     }
 
 
-    public void start(Stage stage, ArrayList<landParcel> landParcels, ArrayList<org.locationtech.jts.geom.Polygon> polygons, Coordinate[] coordinates ) throws Exception {
+    public void start(Stage stage, ArrayList<landParcel> landParcels, ArrayList<Geometry> geometries, Coordinate[] coordinates ) throws Exception {
         //Creating a Group object
         Pane root = new Pane();
 
@@ -54,8 +54,8 @@ public class SceneRenderer {
         colorList.add(Color.DODGERBLUE);
         colorList.add(Color.DARKBLUE);
         colorList.add(Color.DEEPSKYBLUE);
-        for(int i= 0; i < polygons.size(); i++){
-            root.getChildren().add(ConvertPolygon(polygons.get(i)));
+        for(int i= 0; i < geometries.size(); i++){
+            root.getChildren().add(ConvertPolygon(geometries.get(i)));
         }
 
         for(int i= 0; i < landParcels.size(); i++){

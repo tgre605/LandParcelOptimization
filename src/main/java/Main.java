@@ -10,6 +10,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.scene.paint.Color;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 
 import java.awt.*;
@@ -37,7 +38,7 @@ public class Main extends Application {
 
         ArrayList<landParcel> landParcels  = reader.getParcels();
 
-        ArrayList<Polygon> boundingBoxes = new ArrayList<>();
+        ArrayList<Geometry> boundingBoxes = new ArrayList<>();
         boundingBoxes.add( new LandParcelOptimizer().BoundingBoxOptimization(landParcels.get(0)));
 
         SceneRenderer sceneRenderer = new SceneRenderer();

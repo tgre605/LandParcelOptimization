@@ -44,7 +44,7 @@ public class SceneRenderer {
         //Creating a Group object
         Pane root = new Pane();
 
-        FileInputStream input = new FileInputStream(Paths.get(".").toAbsolutePath() + "/input/images/water_map.png");
+        FileInputStream input = new FileInputStream("C:/LandParcelOptimization/input/water_map.png");
         Image image = new Image(input);
         root.getChildren().add(new ImageView(image));
 

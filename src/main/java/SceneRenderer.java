@@ -18,17 +18,23 @@ import org.locationtech.jts.math.Vector2D;
 
 import java.awt.geom.Rectangle2D;
 import java.io.FileInputStream;
+import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class SceneRenderer {
-    private DragContext sceneDragContext = new DragContext();
-    private Vector2D mousePosition = new Vector2D();
+    private static DragContext sceneDragContext = new DragContext();
+    private static Vector2D mousePosition = new Vector2D();
+    private static ArrayList<landParcel> landParcels = new ArrayList<>();
+    private static ArrayList<Geometry> geometries = new ArrayList<>();
+    private static ArrayList<Coordinate> coordinates = new ArrayList<>();
 
 
-    public Polygon ConvertPolygon(Geometry geometry){
+    public static Polygon ConvertPolygon(Geometry geometry){
         List<Double> points = new ArrayList<Double>();
         for(int i = 0; i < geometry.getNumPoints();i++) {
             points.add(geometry.getCoordinates()[i].getX());
@@ -39,12 +45,30 @@ public class SceneRenderer {
         return output;
     }
 
+    public static void render(Geometry geometry){
+        render(new Geometry[] {geometry});
+    }
+    public static void render(Geometry[] geometries){
+        SceneRenderer.geometries.addAll(Arrays.asList(geometries));
+    }
+    public static void render(landParcel landParcel){
+        render(new landParcel[] {landParcel});
+    }
+    public static void render(landParcel[] landParcels){
+        SceneRenderer.landParcels.addAll(Arrays.asList(landParcels));
+    }
+    public static void render(Coordinate coordinate){
+        render(new Coordinate[] {coordinate});
+    }
+    public static void render(Coordinate[] coordinates){
+        SceneRenderer.coordinates.addAll(Arrays.asList(coordinates));
+    }
 
-    public void start(Stage stage, ArrayList<landParcel> landParcels, ArrayList<Geometry> geometries, Coordinate[] coordinates ) throws Exception {
+    public static void start(Stage stage) throws Exception {
         //Creating a Group object
         Pane root = new Pane();
-
-        FileInputStream input = new FileInputStream("C:/LandParcelOptimization/input/water_map.png");
+        Path currentDir = Paths.get(".");
+        FileInputStream input = new FileInputStream(currentDir.toAbsolutePath() + "/input/water_map.png");
         Image image = new Image(input);
         root.getChildren().add(new ImageView(image));
 
@@ -66,10 +90,10 @@ public class SceneRenderer {
             root.getChildren().add(polygon);
         }
 
-        for(int i= 0; i < coordinates.length; i++){
+        for(int i= 0; i < coordinates.size(); i++){
             Circle circle = new Circle();
-            circle.setCenterX(coordinates[i].x);
-            circle.setCenterY(coordinates[i].y);
+            circle.setCenterX(coordinates.get(i).x);
+            circle.setCenterY(coordinates.get(i).y);
             circle.setRadius(0.5);
             circle.setStroke(Color.RED);
             root.getChildren().add(circle);

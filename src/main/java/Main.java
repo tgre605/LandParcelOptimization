@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class DragContext {
 
@@ -38,11 +39,18 @@ public class Main extends Application {
 
         ArrayList<landParcel> landParcels  = reader.getParcels();
 
-        ArrayList<Geometry> boundingBoxes = new ArrayList<>();
-        boundingBoxes.add( new LandParcelOptimizer().BoundingBoxOptimization(landParcels.get(0)));
+        LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
+        Geometry[] boundingBox = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0));
+
+        ArrayList<Geometry> boundingBoxes = new ArrayList<>(Arrays.asList(boundingBox));
 
         SceneRenderer sceneRenderer = new SceneRenderer();
-        sceneRenderer.start(stage, landParcels, boundingBoxes, landParcels.get(0).polygon.getCoordinates());
+        SceneRenderer.render(landParcels.toArray(new landParcel[0]));
+        SceneRenderer.render(boundingBoxes.toArray(new Geometry[0]));
+        SceneRenderer.render(boundingBoxes.get(0).getCoordinates());
+        SceneRenderer.render(boundingBoxes.get(1).getCoordinates());
+
+        sceneRenderer.start(stage);
     }
 
     public static void main(String[] args) {

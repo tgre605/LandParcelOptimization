@@ -9,16 +9,13 @@ import java.util.List;
 import static java.lang.Math.*;
 
 public class LandParcelOptimizer {
-    public Geometry BoundingBoxOptimization(landParcel inputParcel){
+    public Geometry[] BoundingBoxOptimization(landParcel inputParcel){
         MinimumDiameter minimumDiameter = new MinimumDiameter(inputParcel.polygon);
         Geometry boundingBox = minimumDiameter.getMinimumRectangle();
         Coordinate[] coordinates = boundingBox.getCoordinates();
         Coordinate[] line = new Coordinate[]{coordinates[0], coordinates[3]};
-        //Geometry lineGeometry = new GeometryFactory().createPolygon(line);
-        //Polygon landParcelPoly = new GeometryFactory().createPolygon(boundingBox.getCoordinates());
-        //Geometry splitPoly = splitPolygon(landParcelPoly, lineGeometry);
-        halfRectangle(boundingBox, coordinates);
-        return boundingBox;
+        Geometry[] boundingBoxes = halfRectangle(boundingBox);
+        return boundingBoxes;
     }
 
     // CODE FROM https://gis.stackexchange.com/questions/189976/jts-split-arbitrary-polygon-by-a-line
@@ -46,45 +43,36 @@ public class LandParcelOptimizer {
         return poly.getFactory().createGeometryCollection(GeometryFactory.toGeometryArray(output));
     }*/
 
-    public Geometry halfRectangle(Geometry boundingBox, Coordinate[] coordinates){
-        for(int i = 0; i < coordinates.length; i++){
-            System.out.println(coordinates[i]);
-        }
-        double coord1x = coordinates[1].getX();
-        double coord1y = coordinates[1].getY();
-        double coord2x = coordinates[2].getX();
-        double coord2y = coordinates[2].getY();
-        double coord3x = coordinates[3].getX();
-        double coord3y = coordinates[3].getY();
-        double coord4x = coordinates[4].getX();
-        double coord4y = coordinates[4].getY();
+    public Geometry[] halfRectangle(Geometry boundingBox){
+        Coordinate[] coordinates = boundingBox.getCoordinates();
 
-        double x12 = abs(coord1x-coord2x);
-        double y12 = abs(coord1y-coord2y);
-        double dist12 = sqrt(pow(x12,2)+pow(y12,2));
+        double dist13 = coordinates[0].distance(coordinates[3]);
+        double dist12 = coordinates[0].distance(coordinates[1]);
 
-        double x13 = abs(coord1x-coord3x);
-        double y13 = abs(coord1y-coord3y);
-        double dist13 = sqrt(pow(x13,2)+pow(y13,2));
+        Geometry rectangleA, rectangleB;
 
-        if (dist12 > dist13){
-            double mid1x = (coord1x + coord2x)/2;
-            double mid1y = (coord1y + coord2y)/2;
-            double mid2x = (coord3x + coord4x)/2;
-            double mid2y = (coord3y + coord4y)/2;
+        if (dist12 < dist13){
+            double mid1x = (coordinates[0].x + coordinates[3].x)/2;
+            double mid1y = (coordinates[0].y + coordinates[3].y)/2;
+            double mid2x = (coordinates[1].x + coordinates[2].x)/2;
+            double mid2y = (coordinates[1].y + coordinates[2].y)/2;
             Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
             Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
-        } else {
-            double mid1x = (coord1x + coord3x)/2;
-            double mid1y = (coord1y + coord3y)/2;
-            double mid2x = (coord2x + coord4x)/2;
-            double mid2y = (coord2y + coord4y)/2;
+            rectangleA = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[0], midpoint1, midpoint2, coordinates[1], coordinates[0]});
+            rectangleB = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[2], midpoint2,  midpoint1, coordinates[3], coordinates[2]});
+        } else{
+            double mid1x = (coordinates[0].x + coordinates[1].x)/2;
+            double mid1y = (coordinates[0].y + coordinates[1].y)/2;
+            double mid2x = (coordinates[2].x + coordinates[3].x)/2;
+            double mid2y = (coordinates[2].y + coordinates[3].y)/2;
             Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
             Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
+            rectangleA = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[0], midpoint1, midpoint2, coordinates[2], coordinates[0]});
+            rectangleB = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[1], midpoint1, midpoint2, coordinates[3], coordinates[1]});
         }
-        //Want to create two rectangles that make up the original bounding box which can then be used to split a polygon
 
-    return boundingBox;
+
+        return new Geometry[]{rectangleA, rectangleB};
     }
 
 }

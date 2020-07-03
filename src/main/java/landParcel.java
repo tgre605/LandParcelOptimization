@@ -13,7 +13,8 @@ public class landParcel {
         this.vertices = vertices;
     }
 
-    public landParcel(){
+    public landParcel(Geometry polygon){
+       this.polygon = new GeometryFactory().createPolygon(polygon.getCoordinates());
     }
 
     public Coordinate[] getPoints(){

@@ -75,4 +75,8 @@ public class LandParcelOptimizer {
         return new Geometry[]{rectangleA, rectangleB};
     }
 
+    public Geometry splitPolygon(Geometry boundingBox, Geometry landParcel){
+        return boundingBox.intersection(landParcel);
+    }
+
 }

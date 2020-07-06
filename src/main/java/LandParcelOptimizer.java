@@ -9,13 +9,32 @@ import java.util.List;
 import static java.lang.Math.*;
 
 public class LandParcelOptimizer {
-    public Geometry[] BoundingBoxOptimization(landParcel inputParcel){
-        MinimumDiameter minimumDiameter = new MinimumDiameter(inputParcel.polygon);
-        Geometry boundingBox = minimumDiameter.getMinimumRectangle();
-        Coordinate[] coordinates = boundingBox.getCoordinates();
-        Coordinate[] line = new Coordinate[]{coordinates[0], coordinates[3]};
-        Geometry[] boundingBoxes = halfRectangle(boundingBox);
-        return boundingBoxes;
+    public Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea){
+        ArrayList<Geometry> largeFootprints = new ArrayList<>();
+        ArrayList<Geometry> smallFootprints = new ArrayList<>();
+        largeFootprints.add(inputParcel.polygon);
+
+        while (largeFootprints.size() != 0){
+            MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
+
+            Geometry boundingBox = minimumDiameter.getMinimumRectangle();
+            Geometry[] boundingBoxes = halfRectangle(boundingBox);
+            Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+            Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+            if(footprintA.getArea() < minArea)
+                smallFootprints.add(footprintA);
+            else
+                largeFootprints.add(footprintA);
+            if(footprintB.getArea() < minArea)
+                smallFootprints.add(footprintB);
+            else
+                largeFootprints.add(footprintB);
+
+            largeFootprints.remove(0);
+        }
+
+        return smallFootprints.toArray(new Geometry[0]);
     }
 
     // CODE FROM https://gis.stackexchange.com/questions/189976/jts-split-arbitrary-polygon-by-a-line
@@ -75,8 +94,8 @@ public class LandParcelOptimizer {
         return new Geometry[]{rectangleA, rectangleB};
     }
 
-    public Geometry splitPolygon(Geometry boundingBox, Geometry landParcel){
-        return boundingBox.intersection(landParcel);
+    public Geometry splitPolygon(Geometry boundingBox, Geometry footprint){
+        return boundingBox.intersection(footprint);
     }
 
 }

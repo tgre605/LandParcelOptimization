@@ -72,21 +72,32 @@ public class SceneRenderer {
         Image image = new Image(input);
         root.getChildren().add(new ImageView(image));
 
-        ArrayList<Color> colorList = new ArrayList<Color>();
-        colorList.add(Color.BLUE);
-        colorList.add(Color.CORNFLOWERBLUE);
-        colorList.add(Color.DODGERBLUE);
-        colorList.add(Color.DARKBLUE);
-        colorList.add(Color.DEEPSKYBLUE);
-        for(int i= 0; i < geometries.size(); i++){
-            root.getChildren().add(ConvertPolygon(geometries.get(i)));
-        }
+        ArrayList<Color> blueColorList = new ArrayList<Color>();
+        blueColorList.add(Color.BLUE);
+        blueColorList.add(Color.CORNFLOWERBLUE);
+        blueColorList.add(Color.DODGERBLUE);
+        blueColorList.add(Color.DARKBLUE);
+        blueColorList.add(Color.DEEPSKYBLUE);
+
+        ArrayList<Color> greenColorList = new ArrayList<Color>();
+        greenColorList.add(Color.GREEN);
+        greenColorList.add(Color.DARKOLIVEGREEN);
+        greenColorList.add(Color.DARKSEAGREEN);
+        greenColorList.add(Color.DARKGREEN);
+        greenColorList.add(Color.FORESTGREEN);
 
         for(int i= 0; i < landParcels.size(); i++){
             //Get polygon land parcel polygon
             Polygon polygon = ConvertPolygon(landParcels.get(i).polygon);
+            polygon.setFill(blueColorList.get((int)(Math.random() * 4)));
+            root.getChildren().add(polygon);
+        }
 
-            polygon.setFill(colorList.get((int)(Math.random() * 4)));
+        for(int i= 0; i < geometries.size(); i++){
+            Polygon polygon = ConvertPolygon(geometries.get(i));
+            polygon.setFill(greenColorList.get((int)(Math.random() * 4)));
+            polygon.setStroke(Color.GRAY);
+            polygon.setStrokeWidth(0.25f);
             root.getChildren().add(polygon);
         }
 

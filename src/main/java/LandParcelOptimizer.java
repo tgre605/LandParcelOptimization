@@ -52,12 +52,12 @@ public class LandParcelOptimizer {
 
     // LineA -- A -- B -- LineB
     boolean edgeOnLine(Coordinate LineA, Coordinate LineB, Coordinate A, Coordinate B){
-        Vector2D Line = Vector2D.create(LineA, LineB);
-        Vector2D LineAA = Vector2D.create(LineA, A);
-        Vector2D AB = Vector2D.create(A, B);
-        Vector2D BLineB = Vector2D.create(B, LineB);
+        double lineDistance = Vector2D.create(LineA, LineB).distance(Vector2D.create(0,0));
+        double LineAA = Vector2D.create(LineA, A).distance(Vector2D.create(0,0));
+        double AB = Vector2D.create(A, B).distance(Vector2D.create(0,0));
+        double BLineB = Vector2D.create(B, LineB).distance(Vector2D.create(0,0));
 
-        return LineAA.add(AB.add(BLineB)) == Line;
+        return LineAA + AB + BLineB == lineDistance;
     }
 
     // CODE FROM https://gis.stackexchange.com/questions/189976/jts-split-arbitrary-polygon-by-a-line

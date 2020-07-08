@@ -1,6 +1,7 @@
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.LineStringExtracter;
+import org.locationtech.jts.math.Vector2D;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 
 import java.util.ArrayList;
@@ -35,6 +36,28 @@ public class LandParcelOptimizer {
         }
 
         return smallFootprints.toArray(new Geometry[0]);
+    }
+
+    boolean hasRoadAccess(Geometry landParcelPolygon, Geometry footprint){
+        for(int i= 0; i < footprint.getCoordinates().length; i++){
+            for (int j =0; j < landParcelPolygon.getCoordinates().length-1; j++){
+                if(edgeOnLine(landParcelPolygon.getCoordinates()[j], landParcelPolygon.getCoordinates()[j+1],
+                        footprint.getCoordinates()[i], footprint.getCoordinates()[i+1])){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    // LineA -- A -- B -- LineB
+    boolean edgeOnLine(Coordinate LineA, Coordinate LineB, Coordinate A, Coordinate B){
+        Vector2D Line = Vector2D.create(LineA, LineB);
+        Vector2D LineAA = Vector2D.create(LineA, A);
+        Vector2D AB = Vector2D.create(A, B);
+        Vector2D BLineB = Vector2D.create(B, LineB);
+
+        return LineAA.add(AB.add(BLineB)) == Line;
     }
 
     // CODE FROM https://gis.stackexchange.com/questions/189976/jts-split-arbitrary-polygon-by-a-line

@@ -37,7 +37,7 @@ public class Main extends Application {
         Path currentDir = Paths.get(".");
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<landParcel> landParcels  = reader.getParcels();
-
+        ArrayList<landParcel>[][] world = reader.getWorld();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0), 10);
 

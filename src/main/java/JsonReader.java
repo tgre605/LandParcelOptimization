@@ -8,28 +8,45 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.math.Vector2D;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
-public class JsonReader {
+import static java.lang.Math.floor;
 
+public class JsonReader {
+    int gridWidth = 20;
+    int gridHeight = 20;
     ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
     ArrayList<landParcel> parcels = new ArrayList<>();
-    ArrayList<landParcel>[][] world = new ArrayList[10][10];
+    ArrayList<landParcel>[][] world = new ArrayList[gridWidth][gridHeight];
 
-    public JsonReader(String file){
-
+    public JsonReader(String file) throws IOException {
+        for(int i = 0; i < gridWidth; i++){
+            for(int j = 0; j < gridHeight; j++){
+                world[i][j] = new ArrayList<landParcel>();
+            }
+        }
         JSONParser jsonParser = new JSONParser();
+        Path currentDir = Paths.get(".");
+        BufferedImage img = ImageIO.read(new File(currentDir.toAbsolutePath() + "/input/water_map.png"));
+        int width = img.getWidth();
+        int height = img.getHeight();
         try (FileReader reader = new FileReader(file)){
             Object obj = jsonParser.parse(reader);
 
             JSONObject parcels = (JSONObject) obj;
             JSONArray land_usages = (JSONArray) parcels.get("land_usages");
 
-            land_usages.forEach(land -> parsePolygons((JSONObject) land));
+            land_usages.forEach(land -> parsePolygons((JSONObject) land, width, height));
 
         } catch (ParseException e) {
             e.printStackTrace();
@@ -38,13 +55,21 @@ public class JsonReader {
         }
     }
 
-    private void parsePolygons (JSONObject landUsage){
+    private void parsePolygons (JSONObject landUsage, int width, int height){
         JSONArray polygon = (JSONArray) landUsage.get("polygon");
         polygon.forEach(line -> parseVertices((JSONObject) line));
         // JTS requires list coordinates to have start and end coordinates to be the same
         temp.add(temp.get(0));
         landParcel newPolygon = new landParcel(temp);
-        world[0][0].add(newPolygon);
+        Point centrePoint = newPolygon.polygon.getCentroid();
+        double xDivisor = (double)width/gridWidth;
+        double yDivisor = (double)height/gridHeight;
+        double centrePointX = centrePoint.getX();
+        double centrePointY = centrePoint.getY();
+        int gridXD = (int)(centrePointX/xDivisor);
+        int gridYD = (int)(centrePointY/yDivisor);
+        System.out.println(centrePointX/xDivisor + " " + centrePointY/yDivisor);
+        world[gridXD][gridYD].add(newPolygon);
         parcels.add(newPolygon);
         temp.clear();
     }
@@ -58,5 +83,9 @@ public class JsonReader {
 
     public ArrayList<landParcel> getParcels() {
         return parcels;
+    }
+
+    public ArrayList<landParcel>[][] getWorld(){
+        return world;
     }
 }

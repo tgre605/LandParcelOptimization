@@ -19,9 +19,15 @@ public class LandParcelOptimizer {
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
 
             Geometry boundingBox = minimumDiameter.getMinimumRectangle();
-            Geometry[] boundingBoxes = halfRectangle(boundingBox);
+            Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+            if(!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB)){
+                boundingBoxes = halfRectangle(boundingBox, true);
+                footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+                footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+            }
 
             if(footprintA.getArea() < minArea)
                 smallFootprints.add(footprintA);
@@ -39,7 +45,7 @@ public class LandParcelOptimizer {
     }
 
     boolean hasRoadAccess(Geometry landParcelPolygon, Geometry footprint){
-        for(int i= 0; i < footprint.getCoordinates().length; i++){
+        for(int i= 0; i < footprint.getCoordinates().length-1; i++){
             for (int j =0; j < landParcelPolygon.getCoordinates().length-1; j++){
                 if(edgeOnLine(landParcelPolygon.getCoordinates()[j], landParcelPolygon.getCoordinates()[j+1],
                         footprint.getCoordinates()[i], footprint.getCoordinates()[i+1])){
@@ -85,7 +91,7 @@ public class LandParcelOptimizer {
         return poly.getFactory().createGeometryCollection(GeometryFactory.toGeometryArray(output));
     }*/
 
-    public Geometry[] halfRectangle(Geometry boundingBox){
+    public Geometry[] halfRectangle(Geometry boundingBox, boolean invertResult){
         Coordinate[] coordinates = boundingBox.getCoordinates();
 
         double dist13 = coordinates[0].distance(coordinates[3]);
@@ -93,7 +99,7 @@ public class LandParcelOptimizer {
 
         Geometry rectangleA, rectangleB;
 
-        if (dist12 < dist13){
+    if (dist12 < dist13 && !invertResult){
             double mid1x = (coordinates[0].x + coordinates[3].x)/2;
             double mid1y = (coordinates[0].y + coordinates[3].y)/2;
             double mid2x = (coordinates[1].x + coordinates[2].x)/2;
@@ -101,7 +107,8 @@ public class LandParcelOptimizer {
             Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
             Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
             rectangleA = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[0], midpoint1, midpoint2, coordinates[1], coordinates[0]});
-            rectangleB = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[2], midpoint2,  midpoint1, coordinates[3], coordinates[2]});
+            rectangleB =new GeometryFactory().createPolygon(new Coordinate[]{coordinates[2], midpoint2,  midpoint1, coordinates[3], coordinates[2]});
+
         } else{
             double mid1x = (coordinates[0].x + coordinates[1].x)/2;
             double mid1y = (coordinates[0].y + coordinates[1].y)/2;

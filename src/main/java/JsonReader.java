@@ -18,6 +18,7 @@ public class JsonReader {
 
     ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
     ArrayList<landParcel> parcels = new ArrayList<>();
+    ArrayList<landParcel>[][] world = new ArrayList[10][10];
 
     public JsonReader(String file){
 
@@ -43,6 +44,7 @@ public class JsonReader {
         // JTS requires list coordinates to have start and end coordinates to be the same
         temp.add(temp.get(0));
         landParcel newPolygon = new landParcel(temp);
+        world[0][0].add(newPolygon);
         parcels.add(newPolygon);
         temp.clear();
     }

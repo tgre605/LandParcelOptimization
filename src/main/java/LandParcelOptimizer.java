@@ -1,5 +1,6 @@
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geom.util.AffineTransformation;
 import org.locationtech.jts.geom.util.LineStringExtracter;
 import org.locationtech.jts.math.Vector2D;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
@@ -10,6 +11,7 @@ import java.util.List;
 import static java.lang.Math.*;
 
 public class LandParcelOptimizer {
+    private double scaling = 2;
     public Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
@@ -99,7 +101,7 @@ public class LandParcelOptimizer {
 
         Geometry rectangleA, rectangleB;
 
-    if (dist12 < dist13 && !invertResult){
+    if (dist12 < dist13){
             double mid1x = (coordinates[0].x + coordinates[3].x)/2;
             double mid1y = (coordinates[0].y + coordinates[3].y)/2;
             double mid2x = (coordinates[1].x + coordinates[2].x)/2;
@@ -127,5 +129,7 @@ public class LandParcelOptimizer {
     public Geometry splitPolygon(Geometry boundingBox, Geometry footprint){
         return boundingBox.intersection(footprint);
     }
+
+
 
 }

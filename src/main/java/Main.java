@@ -38,9 +38,9 @@ public class Main extends Application {
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<landParcel> landParcels  = reader.getParcels();
         ArrayList<landParcel>[][] world = reader.getWorld();
+        landParcels.get(1).surroundingParcels(reader);
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0), 10);
-
         SceneRenderer sceneRenderer = new SceneRenderer();
         SceneRenderer.render(landParcels.toArray(new landParcel[0]));
         SceneRenderer.render(footprints);

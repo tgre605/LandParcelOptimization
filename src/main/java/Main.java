@@ -40,7 +40,7 @@ public class Main extends Application {
         ArrayList<landParcel>[][] world = reader.getWorld();
         landParcels.get(1).surroundingParcels(reader);
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
-        Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0), 10);
+        Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0), 10, 2, 0.25);
         SceneRenderer sceneRenderer = new SceneRenderer();
         SceneRenderer.render(landParcels.toArray(new landParcel[0]));
         SceneRenderer.render(footprints);

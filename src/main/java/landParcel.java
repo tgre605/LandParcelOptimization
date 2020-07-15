@@ -9,10 +9,12 @@ public class landParcel {
     public ArrayList<building> buildingFootprints = new ArrayList<>();
     public ArrayList<landParcel> neighbours = new ArrayList<>();
     public int[] gridLocaiton;
+    public int id;
+
     private ArrayList<Coordinate> vertices = new ArrayList<>();
     private type landType;
     private static int nextId = 0;
-    private int id;
+
 
    public landParcel(ArrayList<Coordinate> vertices, type landType) {
         polygon = new GeometryFactory().createPolygon(vertices.toArray(new Coordinate[0]));

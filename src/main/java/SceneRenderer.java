@@ -78,17 +78,28 @@ public class SceneRenderer {
 
             if ( obj instanceof Polygon )
             {
-                Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
+                try {
+                    Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
 
-                String textString = "center: " + geometry.getCentroid().toString() + "\n";
-                text.setText( textString);
-            }
-            if ( obj instanceof Coordinate )
-            {
-                Coordinate geometry = (Coordinate) ((Polygon) obj).getUserData();
+                    String textString = "Geometry: \n";
+                    textString    += "center: " + geometry.getCentroid().toString() + "\n";
+                    text.setText(textString);
+                } catch (ClassCastException e){
+                    try {
+                        Coordinate geometry = (Coordinate) ((Polygon) obj).getUserData();
 
-                String textString = "center: " + geometry.toString() + "\n";
-                text.setText( textString);
+                        String textString  = "Coordinate: \n";
+                        textString += "center: " + geometry.toString() + "\n";
+                        text.setText( textString);
+                    } catch (ClassCastException ce){
+                        landParcel geometry = (landParcel) ((Polygon) obj).getUserData();
+
+                        String textString  = "Land Parcel: \n";
+                        textString += "center: " + geometry.polygon.getCentroid().toString() + "\n";
+                        textString += "Id: " + geometry.id;
+                        text.setText( textString);
+                    }
+                }
             }
         }
     };
@@ -112,6 +123,8 @@ public class SceneRenderer {
             Polygon polygon = ConvertPolygon(landParcels.get(i).polygon);
             Color color = Color.color(0, 0 , clamp(r.nextFloat() + 0.25, 0, 1));
             polygon.setFill(color);
+            polygon.setOnMouseEntered(mouseOver);
+            polygon.setUserData(landParcels.get(i));
             root.getChildren().add(polygon);
         }
 

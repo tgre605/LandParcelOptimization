@@ -57,19 +57,23 @@ public class JsonReader {
 
     private void parsePolygons (JSONObject landUsage, int width, int height){
         JSONArray polygon = (JSONArray) landUsage.get("polygon");
+        String landTypeJSON = landUsage.get("land_usage").toString();
         polygon.forEach(line -> parseVertices((JSONObject) line));
         // JTS requires list coordinates to have start and end coordinates to be the same
         temp.add(temp.get(0));
-        landParcel newPolygon = new landParcel(temp);
+        landParcel.type landType = landParcel.type.undefined;
+        if(landTypeJSON.compareTo("residential") == 0){
+            landType = landParcel.type.residential;
+        } else if(landTypeJSON.compareTo("commercial") == 0){
+            landType = landParcel.type.commercial;
+        } else if(landTypeJSON.compareTo("industry") == 0){
+            landType = landParcel.type.industry;
+        }
+        landParcel newPolygon = new landParcel(temp, landType);
         Point centrePoint = newPolygon.polygon.getCentroid();
-        double xDivisor = (double)width/gridWidth;
-        double yDivisor = (double)height/gridHeight;
-        double centrePointX = centrePoint.getX();
-        double centrePointY = centrePoint.getY();
-        int gridXD = (int)(centrePointX/xDivisor);
-        int gridYD = (int)(centrePointY/yDivisor);
-        System.out.println(centrePointX/xDivisor + " " + centrePointY/yDivisor);
-        world[gridXD][gridYD].add(newPolygon);
+        int[] xyPoints = findPointInGrid(centrePoint, width, height);
+        newPolygon.setGridLocaiton(xyPoints);
+        world[xyPoints[0]][xyPoints[1]].add(newPolygon);
         parcels.add(newPolygon);
         temp.clear();
     }
@@ -87,5 +91,26 @@ public class JsonReader {
 
     public ArrayList<landParcel>[][] getWorld(){
         return world;
+    }
+
+    public int getGridHeight() {
+        return gridHeight;
+    }
+
+    public int getGridWidth() {
+        return gridWidth;
+    }
+
+    public int[] findPointInGrid(Point centrePoint, int width, int height){
+        double xDivisor = (double)width/gridWidth;
+        double yDivisor = (double)height/gridHeight;
+        double centrePointX = centrePoint.getX();
+        double centrePointY = centrePoint.getY();
+        int gridXD = (int)(centrePointX/xDivisor);
+        int gridYD = (int)(centrePointY/yDivisor);
+        int[] xyPoints = new int[2];
+        xyPoints[0] = gridXD;
+        xyPoints[1] = gridYD;
+        return xyPoints;
     }
 }

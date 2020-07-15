@@ -1,6 +1,5 @@
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
+import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -10,28 +9,28 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.math.Vector2D;
 
-import java.awt.geom.Rectangle2D;
 import java.io.FileInputStream;
-import java.lang.reflect.Array;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class SceneRenderer {
     private static DragContext sceneDragContext = new DragContext();
     private static Vector2D mousePosition = new Vector2D();
     private static ArrayList<landParcel> landParcels = new ArrayList<>();
+    private static ArrayList<landParcel> debugLandParcels = new ArrayList<>();
     private static ArrayList<Geometry> geometries = new ArrayList<>();
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
+
+    private  static Text text = new Text();
 
 
     public static Polygon ConvertPolygon(Geometry geometry){
@@ -64,40 +63,65 @@ public class SceneRenderer {
         SceneRenderer.coordinates.addAll(Arrays.asList(coordinates));
     }
 
+    public static void debugRender(landParcel landParcel){
+        debugRender(new landParcel[] {landParcel});
+    }
+    public static void debugRender(landParcel[] landParcels){
+        SceneRenderer.debugLandParcels.addAll(Arrays.asList(landParcels));
+    }
+
+
+    static EventHandler<MouseEvent> mouseOver = new EventHandler<MouseEvent>() {
+        @Override
+        public void handle(MouseEvent event) {
+            Object obj = event.getSource();
+
+            if ( obj instanceof Polygon )
+            {
+                Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
+
+                String textString = "center: " + geometry.getCentroid().toString() + "\n";
+                text.setText( textString);
+            }
+            if ( obj instanceof Coordinate )
+            {
+                Coordinate geometry = (Coordinate) ((Polygon) obj).getUserData();
+
+                String textString = "center: " + geometry.toString() + "\n";
+                text.setText( textString);
+            }
+        }
+    };
+
+
     public static void start(Stage stage) throws Exception {
+        Group group = new Group();
+
         //Creating a Group object
         Pane root = new Pane();
         Path currentDir = Paths.get(".");
         FileInputStream input = new FileInputStream(currentDir.toAbsolutePath() + "/input/water_map.png");
+
         Image image = new Image(input);
         root.getChildren().add(new ImageView(image));
 
-        ArrayList<Color> blueColorList = new ArrayList<Color>();
-        blueColorList.add(Color.BLUE);
-        blueColorList.add(Color.CORNFLOWERBLUE);
-        blueColorList.add(Color.DODGERBLUE);
-        blueColorList.add(Color.DARKBLUE);
-        blueColorList.add(Color.DEEPSKYBLUE);
-
-        ArrayList<Color> greenColorList = new ArrayList<Color>();
-        greenColorList.add(Color.GREEN);
-        greenColorList.add(Color.DARKOLIVEGREEN);
-        greenColorList.add(Color.DARKSEAGREEN);
-        greenColorList.add(Color.DARKGREEN);
-        greenColorList.add(Color.FORESTGREEN);
 
         for(int i= 0; i < landParcels.size(); i++){
+            Random r = new Random();
             //Get polygon land parcel polygon
             Polygon polygon = ConvertPolygon(landParcels.get(i).polygon);
-            polygon.setFill(blueColorList.get((int)(Math.random() * 4)));
+            Color color = Color.color(0, 0 , clamp(r.nextFloat() + 0.25, 0, 1));
+            polygon.setFill(color);
             root.getChildren().add(polygon);
         }
 
         for(int i= 0; i < geometries.size(); i++){
             Polygon polygon = ConvertPolygon(geometries.get(i));
-            polygon.setFill(greenColorList.get((int)(Math.random() * 4)));
+            polygon.setFill(Color.GREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
             polygon.setStroke(Color.GRAY);
             polygon.setStrokeWidth(0.25f);
+            polygon.setOnMouseEntered(mouseOver);
+            polygon.setUserData(geometries.get(i));
             root.getChildren().add(polygon);
         }
 
@@ -106,12 +130,22 @@ public class SceneRenderer {
             circle.setCenterX(coordinates.get(i).x);
             circle.setCenterY(coordinates.get(i).y);
             circle.setRadius(0.5);
-            circle.setStroke(Color.RED);
+            circle.setOnMouseEntered(mouseOver);
+            circle.setUserData(coordinates.get(i));
+            circle.setFill(Color.RED.interpolate(Color.DARKRED, (double) i/coordinates.size()));
             root.getChildren().add(circle);
         }
 
+        text.setText("");
+        text.setX(20);
+        text.setY(40);
+        text.setFont(Font.font ("Arial", 25));
+
+        group.getChildren().add(root);
+        group.getChildren().add(text);
+
         //Creating a scene object
-        Scene scene = new Scene(root, 900, 900);
+        Scene scene = new Scene(group, 900, 900);
 
         scene.setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
@@ -184,5 +218,9 @@ public class SceneRenderer {
 
         //Displaying the contents of the stage
         stage.show();
+    }
+
+    public static double clamp(double val, double min, double max) {
+        return Math.max(min, Math.min(max, val));
     }
 }

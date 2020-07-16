@@ -83,6 +83,7 @@ public class SceneRenderer {
 
                     String textString = "Geometry: \n";
                     textString    += "center: " + geometry.getCentroid().toString() + "\n";
+                    textString += "Id: " + geometry.getUserData();
                     text.setText(textString);
                 } catch (ClassCastException e){
                     try {
@@ -130,7 +131,7 @@ public class SceneRenderer {
 
         for(int i= 0; i < geometries.size(); i++){
             Polygon polygon = ConvertPolygon(geometries.get(i));
-            polygon.setFill(Color.GREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
+            polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
             polygon.setStroke(Color.GRAY);
             polygon.setStrokeWidth(0.25f);
             polygon.setOnMouseEntered(mouseOver);

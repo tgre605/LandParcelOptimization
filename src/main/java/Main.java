@@ -35,15 +35,15 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<landParcel> landParcels  = reader.getParcels();
-        ArrayList<landParcel>[][] world = reader.getWorld();
-        landParcels.get(1).surroundingParcels(reader);
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
-        Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(landParcels.get(0), 10, 0.5, 0.75);
         SceneRenderer sceneRenderer = new SceneRenderer();
-        SceneRenderer.render(landParcels.toArray(new landParcel[0]));
-        SceneRenderer.render(footprints);
+        for (landParcel parcels: landParcels) {
+            parcels.surroundingParcels(reader);
+            Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 10, 0.5, 0.75);
+            SceneRenderer.render(footprints);
+        }
 
         sceneRenderer.start(stage);
     }

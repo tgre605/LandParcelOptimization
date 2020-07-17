@@ -20,30 +20,41 @@ public class LandParcelOptimizer {
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
+            if(footprintA == null || footprintB == null){
+                largeFootprints.remove(0);
+                continue;
+            }
+
             if(!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB)){
-                String concatDouble = String.valueOf((int)inputParcel.polygon.getCentroid().getX()).concat(String.valueOf((int)inputParcel.polygon.getCentroid().getY()));
-                if(new Random(Long.parseLong(concatDouble)).nextDouble() < streetAccessLevel) {
+                if(new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() < streetAccessLevel) {
                     boundingBoxes = halfRectangle(boundingBox, true);
                     footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
                     footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
                 }
             }
 
+            if(footprintA == null || footprintB == null){
+                largeFootprints.remove(0);
+                continue;
+            }
+
             ArrayList<Coordinate> footprintAEdge = getLongestRoadEdge(inputParcel.polygon, footprintA);
             ArrayList<Coordinate> footprintBEdge = getLongestRoadEdge(inputParcel.polygon, footprintB);
 
-            if(footprintAEdge.size() > 0 && footprintAEdge.get(0).distance(footprintAEdge.get(1)) < minStreetWidth){
+            /*
+            if(hasRoadAccess(inputParcel.polygon, footprintA) && footprintAEdge.size() > 0 && footprintAEdge.get(0).distance(footprintAEdge.get(1)) < minStreetWidth){
                 smallFootprints.add(footprintA);
-            } else if(footprintA.getArea() < minArea) {
+            } else*/ if(footprintA.getArea() < minArea) {
                 smallFootprints.add(footprintA);
             }
             else {
                 largeFootprints.add(footprintA);
             }
 
-            if(footprintBEdge.size() > 0 && footprintBEdge.get(0).distance(footprintBEdge.get(1)) < minStreetWidth){
+
+            /* if(hasRoadAccess(inputParcel.polygon, footprintB) && footprintBEdge.size() > 0 && footprintBEdge.get(0).distance(footprintBEdge.get(1)) < minStreetWidth){
                 smallFootprints.add(footprintB);
-            } else if(footprintB.getArea() < minArea) {
+            } else */ if(footprintB.getArea() < minArea) {
                 smallFootprints.add(footprintB);
             }
             else {
@@ -53,8 +64,7 @@ public class LandParcelOptimizer {
             largeFootprints.remove(0);
         }
         for(int i =0; i < smallFootprints.size(); i++){
-            if(!hasRoadAccess(inputParcel.polygon, smallFootprints.get(i)))
-                SceneRenderer.render(smallFootprints.get(i));
+            smallFootprints.get(i).setUserData(i);
         }
         return smallFootprints.toArray(new Geometry[0]);
     }
@@ -141,19 +151,24 @@ public class LandParcelOptimizer {
         return new Geometry[]{rectangleA, rectangleB};
     }
 
-    public double smallestEdge(Geometry geometry){
-        double smallestLength = 1000;
-        for(int i= 0; i < geometry.getCoordinates().length-2; i++){
-            double distance = geometry.getCoordinates()[i].distance(geometry.getCoordinates()[i+1]);
-            if(distance < smallestLength && distance > 0.001){
-                smallestLength = distance;
-            }
-        }
-        return smallestLength;
+    private Long getSeedFromPosition(Point position){
+        String positionX = String.valueOf(position.getX()).substring(0, 6);
+        String positionY = String.valueOf(position.getY()).substring(0, 6);
+
+        positionX = positionX.replace(".", "");
+        positionY = positionY.replace(".", "");
+
+        return Long.parseLong(positionX.concat(positionY));
     }
 
     public Geometry splitPolygon(Geometry boundingBox, Geometry footprint){
-        return new GeometryFactory().createPolygon(CoordinateArrays.removeRepeatedPoints(boundingBox.intersection(footprint).getCoordinates()));
+        try {
+            return new GeometryFactory().createPolygon(CoordinateArrays.removeRepeatedPoints(boundingBox.intersection(footprint).getCoordinates()));
+        } catch (TopologyException e){
+            return  null;
+        } catch (IllegalArgumentException e){
+            return null;
+        }
     }
 
 }

@@ -1,12 +1,49 @@
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
-import org.locationtech.jts.geomgraph.Edge;
-import org.locationtech.jts.math.Vector2D;
+import org.locationtech.jts.operation.polygonize.Polygonizer;
+import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
+import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Random;
 
 public class LandParcelOptimizer {
+
+    /*
+    public  Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
+        ArrayList<Geometry> largeFootprints = new ArrayList<>();
+        ArrayList<Geometry> smallFootprints = new ArrayList<>();
+        largeFootprints.add(inputParcel.polygon);
+
+        while(largeFootprints.size() > 0){
+            Geometry currentFootprint = largeFootprints.get(0);
+            if(currentFootprint.getArea() > minArea && getLongestRoadEdge(inputParcel.polygon, currentFootprint) > minStreetWidth){
+                    MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
+                    Geometry boundingBox = minimumDiameter.getMinimumRectangle();
+
+                    Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
+                    Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+                    Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+                    if (!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintA)) {
+                        boundingBoxes = halfRectangle(boundingBox, true);
+                        footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+                        footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+                    }
+
+                    largeFootprints.add(footprintA);
+                    largeFootprints.add(footprintB);
+
+            } else {
+                smallFootprints.add(currentFootprint);
+                largeFootprints.remove(0);
+            }
+        }
+        return smallFootprints.toArray(new Geometry[0]);
+    }
+    */
     public Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
@@ -20,45 +57,67 @@ public class LandParcelOptimizer {
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
-            if(footprintA == null || footprintB == null){
-                largeFootprints.remove(0);
-                continue;
-            }
-
-            if(!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB)){
-                if(new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() < streetAccessLevel) {
-                    boundingBoxes = halfRectangle(boundingBox, true);
-                    footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
-                    footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
-                }
-            }
+            footprintA = DouglasPeuckerSimplifier.simplify(footprintA, 0.15);
+            footprintB = DouglasPeuckerSimplifier.simplify(footprintB, 0.15);
 
             if(footprintA == null || footprintB == null){
                 largeFootprints.remove(0);
                 continue;
             }
 
-            ArrayList<Coordinate> footprintAEdge = getLongestRoadEdge(inputParcel.polygon, footprintA);
-            ArrayList<Coordinate> footprintBEdge = getLongestRoadEdge(inputParcel.polygon, footprintB);
+
+            boolean hasTriangle = isTriangle(footprintA) || isTriangle(footprintB);
+            boolean hasRoadAccess =!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
+
+            boundingBoxes = halfRectangle(boundingBox, true);
+
+            Geometry newFootprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+            Geometry newFootprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+            boolean newHasTriangle = isTriangle(newFootprintA) || isTriangle(newFootprintB);
+            boolean newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
+
+            Geometry finalFootprintA = footprintA;
+            Geometry finalFootprintB = footprintB;
+
+             if(hasTriangle && !newHasTriangle){
+                finalFootprintA = newFootprintA;
+                finalFootprintB = newFootprintB;
+            } else if(!hasTriangle && newHasTriangle){
+                finalFootprintA = footprintA;
+                finalFootprintB = footprintB;
+            }  else if(!hasRoadAccess && newHasRoadAccess && new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() < streetAccessLevel){
+                finalFootprintA = newFootprintA;
+                finalFootprintB = newFootprintB;
+            }
+
+            if(finalFootprintA == null || finalFootprintB == null){
+                largeFootprints.remove(0);
+                continue;
+            }
+
+
+            double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
+            double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
 
             /*
-            if(hasRoadAccess(inputParcel.polygon, footprintA) && footprintAEdge.size() > 0 && footprintAEdge.get(0).distance(footprintAEdge.get(1)) < minStreetWidth){
-                smallFootprints.add(footprintA);
-            } else*/ if(footprintA.getArea() < minArea) {
-                smallFootprints.add(footprintA);
+            if(hasRoadAccess(inputParcel.polygon, finalFootprintA) && footprintAEdge > minStreetWidth){
+                smallFootprints.add(finalFootprintA);
+            } else*/ if(finalFootprintA.getArea() < minArea) {
+                smallFootprints.add(finalFootprintA);
             }
             else {
-                largeFootprints.add(footprintA);
+                largeFootprints.add(finalFootprintA);
             }
 
-
-            /* if(hasRoadAccess(inputParcel.polygon, footprintB) && footprintBEdge.size() > 0 && footprintBEdge.get(0).distance(footprintBEdge.get(1)) < minStreetWidth){
-                smallFootprints.add(footprintB);
-            } else */ if(footprintB.getArea() < minArea) {
-                smallFootprints.add(footprintB);
+            /*
+            if(hasRoadAccess(inputParcel.polygon, finalFootprintB) && footprintBEdge > minStreetWidth){
+                smallFootprints.add(finalFootprintB);
+            } else */ if(finalFootprintB.getArea() < minArea) {
+                smallFootprints.add(finalFootprintB);
             }
             else {
-                largeFootprints.add(footprintB);
+                largeFootprints.add(finalFootprintB);
             }
 
             largeFootprints.remove(0);
@@ -80,9 +139,9 @@ public class LandParcelOptimizer {
         return false;
     }
 
-    ArrayList<Coordinate> getLongestRoadEdge(Geometry landParcelPolygon, Geometry footprint){
+    double getLongestRoadEdge(Geometry landParcelPolygon, Geometry footprint){
         ArrayList<Coordinate> longestEdge = new ArrayList<>();
-        double longestLength = 0;
+        double longestLength = -1;
 
 
         for(int i= 0; i < landParcelPolygon.getCoordinates().length-1; i++){
@@ -96,13 +155,12 @@ public class LandParcelOptimizer {
                             longestEdge.add(footprint.getCoordinates()[j]);
                             longestEdge.add(footprint.getCoordinates()[j+1]);
                         }
-
                     }
                 }
             }
         }
 
-        return longestEdge;
+        return longestLength;
     }
 
 
@@ -163,12 +221,98 @@ public class LandParcelOptimizer {
 
     public Geometry splitPolygon(Geometry boundingBox, Geometry footprint){
         try {
-            return new GeometryFactory().createPolygon(CoordinateArrays.removeRepeatedPoints(boundingBox.intersection(footprint).getCoordinates()));
+
+            Geometry intersect = boundingBox.intersection(validate(TopologyPreservingSimplifier.simplify(footprint, 0.15)));
+            return new GeometryFactory().createPolygon(CoordinateArrays.removeRepeatedPoints(intersect.getCoordinates()));
+
         } catch (TopologyException e){
-            return  null;
+            return null;
         } catch (IllegalArgumentException e){
             return null;
         }
     }
 
+    public static Geometry validate(Geometry geom){
+        if(geom instanceof Polygon){
+            if(geom.isValid()){
+                geom.normalize(); // validate does not pick up rings in the wrong order - this will fix that
+                return geom; // If the polygon is valid just return it
+            }
+            Polygonizer polygonizer = new Polygonizer();
+            addPolygon((Polygon)geom, polygonizer);
+            return toPolygonGeometry(polygonizer.getPolygons(), geom.getFactory());
+        }else if(geom instanceof MultiPolygon){
+            if(geom.isValid()){
+                geom.normalize(); // validate does not pick up rings in the wrong order - this will fix that
+                return geom; // If the multipolygon is valid just return it
+            }
+            Polygonizer polygonizer = new Polygonizer();
+            for(int n = geom.getNumGeometries(); n-- > 0;){
+                addPolygon((Polygon)geom.getGeometryN(n), polygonizer);
+            }
+            return toPolygonGeometry(polygonizer.getPolygons(), geom.getFactory());
+        }else{
+            return geom; // In my case, I only care about polygon / multipolygon geometries
+        }
+    }
+    /**
+     * Add all line strings from the polygon given to the polygonizer given
+     *
+     * @param polygon polygon from which to extract line strings
+     * @param polygonizer polygonizer
+     */
+    static void addPolygon(Polygon polygon, Polygonizer polygonizer){
+        addLineString(polygon.getExteriorRing(), polygonizer);
+        for(int n = polygon.getNumInteriorRing(); n-- > 0;){
+            addLineString(polygon.getInteriorRingN(n), polygonizer);
+        }
+    }
+
+    /**
+     * Add the linestring given to the polygonizer
+     *
+     * @param lineString line string
+     * @param polygonizer polygonizer
+     */
+    static void addLineString(LineString lineString, Polygonizer polygonizer){
+
+        if(lineString instanceof LinearRing){ // LinearRings are treated differently to line strings : we need a LineString NOT a LinearRing
+            lineString = lineString.getFactory().createLineString(lineString.getCoordinateSequence());
+        }
+
+        // unioning the linestring with the point makes any self intersections explicit.
+        Point point = lineString.getFactory().createPoint(lineString.getCoordinateN(0));
+        Geometry toAdd = lineString.union(point);
+
+        //Add result to polygonizer
+        polygonizer.add(toAdd);
+    }
+
+    /**
+     * Get a geometry from a collection of polygons.
+     *
+     * @param polygons collection
+     * @param factory factory to generate MultiPolygon if required
+     * @return null if there were no polygons, the polygon if there was only one, or a MultiPolygon containing all polygons otherwise
+     */
+    static Geometry toPolygonGeometry(Collection<Polygon> polygons, GeometryFactory factory){
+        switch(polygons.size()){
+            case 0:
+                return null; // No valid polygons!
+            case 1:
+                return polygons.iterator().next(); // single polygon - no need to wrap
+            default:
+                //polygons may still overlap! Need to sym difference them
+                Iterator<Polygon> iter = polygons.iterator();
+                Geometry ret = iter.next();
+                while(iter.hasNext()){
+                    ret = ret.symDifference(iter.next());
+                }
+                return ret;
+        }
+    }
+
+    boolean isTriangle(Geometry geometry){
+        return !(geometry.getCoordinates().length > 4);
+    }
 }

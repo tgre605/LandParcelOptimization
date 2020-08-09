@@ -30,7 +30,7 @@ public class SceneRenderer {
     private static ArrayList<Geometry> geometries = new ArrayList<>();
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
 
-    private  static Text text = new Text();
+    private static Text text = new Text();
 
 
     public static Polygon ConvertPolygon(Geometry geometry){

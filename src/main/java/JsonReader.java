@@ -29,6 +29,7 @@ public class JsonReader {
     ArrayList<landParcel> parcels = new ArrayList<>();
     ArrayList<landParcel>[][] world = new ArrayList[gridWidth][gridHeight];
 
+
     public JsonReader(String file) throws IOException {
         for(int i = 0; i < gridWidth; i++){
             for(int j = 0; j < gridHeight; j++){
@@ -58,6 +59,9 @@ public class JsonReader {
     private void parsePolygons (JSONObject landUsage, int width, int height){
         JSONArray polygon = (JSONArray) landUsage.get("polygon");
         String landTypeJSON = landUsage.get("land_usage").toString();
+        Object populationO = landUsage.get("population");
+        Long population = (Long) populationO;
+        double populationDensity = (double) landUsage.get("population_density");
         polygon.forEach(line -> parseVertices((JSONObject) line));
         // JTS requires list coordinates to have start and end coordinates to be the same
         temp.add(temp.get(0));
@@ -69,7 +73,7 @@ public class JsonReader {
         } else if(landTypeJSON.compareTo("industry") == 0){
             landType = landParcel.type.industry;
         }
-        landParcel newPolygon = new landParcel(temp, landType);
+        landParcel newPolygon = new landParcel(temp, landType, population, populationDensity);
         Point centrePoint = newPolygon.polygon.getCentroid();
         int[] xyPoints = findPointInGrid(centrePoint, width, height);
         newPolygon.setGridLocaiton(xyPoints);

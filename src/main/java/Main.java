@@ -35,7 +35,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<landParcel> landParcels  = reader.getParcels();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         SceneRenderer sceneRenderer = new SceneRenderer();
@@ -44,7 +44,7 @@ public class Main extends Application {
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 10, 0.5, 0.25);
             SceneRenderer.render(footprints);
         }
-
+        System.out.println("test");
         sceneRenderer.start(stage);
     }
 

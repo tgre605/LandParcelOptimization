@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class landParcel {
+
+
+
+
     public enum type{residential, commercial, industry, undefined}
     public Polygon polygon = new Polygon(null, null, new GeometryFactory());
     public ArrayList<building> buildingFootprints = new ArrayList<>();
@@ -13,14 +17,18 @@ public class landParcel {
 
     private ArrayList<Coordinate> vertices = new ArrayList<>();
     private type landType;
+    private double population;
+    private double populationDensity;
     private static int nextId = 0;
 
 
-   public landParcel(ArrayList<Coordinate> vertices, type landType) {
+   public landParcel(ArrayList<Coordinate> vertices, type landType, double population, double populationDensity) {
         polygon = new GeometryFactory().createPolygon(vertices.toArray(new Coordinate[0]));
         this.landType = landType;
         this.vertices = vertices;
         this.id = landParcel.nextId;
+        this.population = population;
+        this.populationDensity = populationDensity;
         landParcel.nextId++;
     }
 
@@ -61,6 +69,22 @@ public class landParcel {
             }
         }
 
+    }
+
+    public double getPopulation() {
+        return population;
+    }
+
+    public void setPopulation(int population) {
+        this.population = population;
+    }
+
+    public double getPopulationDensity() {
+        return populationDensity;
+    }
+
+    public void setPopulationDensity(int populationDensity) {
+        this.populationDensity = populationDensity;
     }
 
 }

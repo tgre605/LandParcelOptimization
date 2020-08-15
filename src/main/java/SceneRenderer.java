@@ -83,7 +83,8 @@ public class SceneRenderer {
 
                     String textString = "Geometry: \n";
                     textString    += "center: " + geometry.getCentroid().toString() + "\n";
-                    textString += "Id: " + geometry.getUserData();
+                    textString += "Id: " + geometry.getUserData()+ "\n";
+                    textString += "Is Triangle: " + LandParcelOptimizer.isTriangle(geometry, 0.25);
                     text.setText(textString);
                 } catch (ClassCastException e){
                     try {

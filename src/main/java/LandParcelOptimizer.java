@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class LandParcelOptimizer {
 
-    public double tolerance = 0.25;
+    public double triangleTolerance = 0.25;
 
     /*
     public  Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
@@ -46,7 +46,7 @@ public class LandParcelOptimizer {
         return smallFootprints.toArray(new Geometry[0]);
     }
     */
-    public Geometry[] BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
+    public Geometry[] BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
@@ -62,7 +62,7 @@ public class LandParcelOptimizer {
 
             boolean hasTriangle  = true,hasRoadAccess = true;
             if(footprintA != null && footprintB != null) {
-                hasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(footprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(footprintB, tolerance));
+                hasTriangle = isTriangle(footprintA, triangleTolerance) || isTriangle(footprintB, triangleTolerance);
                 hasRoadAccess = !hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
             }
 
@@ -73,13 +73,14 @@ public class LandParcelOptimizer {
 
             boolean newHasTriangle  = true,newHasRoadAccess  = true;
             if(newFootprintA != null && newFootprintB != null) {
-                newHasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(newFootprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(newFootprintB, tolerance));
+                newHasTriangle = isTriangle(newFootprintA, triangleTolerance) || isTriangle(newFootprintB, triangleTolerance);
                 newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
             }
 
             //Assessment
             Geometry finalFootprintA = footprintA;
             Geometry finalFootprintB = footprintB;
+
 
              if(hasTriangle && !newHasTriangle){
                 finalFootprintA = newFootprintA;
@@ -93,7 +94,7 @@ public class LandParcelOptimizer {
             }
 
              if(finalFootprintA == null || finalFootprintB == null){
-
+                 smallFootprints.add(largeFootprints.get(0));
                  largeFootprints.remove(0);
                  continue;
              }
@@ -102,8 +103,9 @@ public class LandParcelOptimizer {
             double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
             double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
 
-
-            if(footprintAEdge > minStreetWidth){
+            if(isTriangle(finalFootprintA, triangleTolerance)  && finalFootprintA.getArea() < triangleMinArea){
+                smallFootprints.add(finalFootprintA);
+            } else if(footprintAEdge > minStreetWidth){
                 smallFootprints.add(finalFootprintA);
             } else if(finalFootprintA.getArea() < minArea) {
                 smallFootprints.add(finalFootprintA);
@@ -113,7 +115,10 @@ public class LandParcelOptimizer {
             }
 
 
-            if(footprintBEdge > minStreetWidth){
+            if(isTriangle(finalFootprintB, triangleTolerance) && finalFootprintB.getArea() < triangleMinArea){
+                System.out.println("TRIANGLE");
+                smallFootprints.add(finalFootprintB);
+            } else if(footprintBEdge > minStreetWidth){
                 smallFootprints.add(finalFootprintB);
             } else  if(finalFootprintB.getArea() < minArea) {
                 smallFootprints.add(finalFootprintB);
@@ -315,7 +320,7 @@ public class LandParcelOptimizer {
         }
     }
 
-    boolean isTriangle(Geometry geometry){
-        return !(geometry.getCoordinates().length > 4);
+    public static boolean isTriangle(Geometry geometry, double tolerance){
+        return !(TopologyPreservingSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
     }
 }

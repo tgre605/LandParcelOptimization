@@ -6,7 +6,7 @@ public class Footprint {
     public Geometry geometry;
     public int id;
     static int nextId;
-    public ArrayList<Building> building = new ArrayList<>();
+    Building building;
 
     public Footprint (Geometry shape){
         this.geometry = shape;
@@ -15,6 +15,6 @@ public class Footprint {
     }
 
     public void addBuilding(Building buildingP){
-        this.building.add(buildingP);
+        this.building = buildingP;
     }
 }

@@ -9,7 +9,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Random;
 
+
 public class LandParcelOptimizer {
+
+    public double tolerance = 0.25;
 
     /*
     public  Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
@@ -53,30 +56,35 @@ public class LandParcelOptimizer {
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
             Geometry boundingBox = minimumDiameter.getMinimumRectangle();
 
+            //Normal Split
             Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
-            footprintA = DouglasPeuckerSimplifier.simplify(footprintA, 0.15);
-            footprintB = DouglasPeuckerSimplifier.simplify(footprintB, 0.15);
+            //footprintA = DouglasPeuckerSimplifier.simplify(footprintA, tolerance);
+            //footprintB = DouglasPeuckerSimplifier.simplify(footprintB, tolerance);
 
             if(footprintA == null || footprintB == null){
                 largeFootprints.remove(0);
                 continue;
             }
 
-
-            boolean hasTriangle = isTriangle(footprintA) || isTriangle(footprintB);
+            boolean hasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(footprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(footprintB, tolerance));
             boolean hasRoadAccess =!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
 
-            boundingBoxes = halfRectangle(boundingBox, true);
 
+            //Rotated Split
+            boundingBoxes = halfRectangle(boundingBox, true);
             Geometry newFootprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry newFootprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
-            boolean newHasTriangle = isTriangle(newFootprintA) || isTriangle(newFootprintB);
+            //newFootprintA = DouglasPeuckerSimplifier.simplify(newFootprintA, tolerance);
+            //newFootprintB = DouglasPeuckerSimplifier.simplify(newFootprintB, tolerance);
+
+            boolean newHasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(newFootprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(newFootprintB, tolerance));
             boolean newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
 
+            //Assessment
             Geometry finalFootprintA = footprintA;
             Geometry finalFootprintB = footprintB;
 
@@ -91,29 +99,24 @@ public class LandParcelOptimizer {
                 finalFootprintB = newFootprintB;
             }
 
-            if(finalFootprintA == null || finalFootprintB == null){
-                largeFootprints.remove(0);
-                continue;
-            }
-
 
             double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
             double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
 
-            /*
-            if(hasRoadAccess(inputParcel.polygon, finalFootprintA) && footprintAEdge > minStreetWidth){
+
+            if(footprintAEdge > minStreetWidth){
                 smallFootprints.add(finalFootprintA);
-            } else*/ if(finalFootprintA.getArea() < minArea) {
+            } else if(finalFootprintA.getArea() < minArea) {
                 smallFootprints.add(finalFootprintA);
             }
             else {
                 largeFootprints.add(finalFootprintA);
             }
 
-            /*
-            if(hasRoadAccess(inputParcel.polygon, finalFootprintB) && footprintBEdge > minStreetWidth){
+
+            if(footprintBEdge > minStreetWidth){
                 smallFootprints.add(finalFootprintB);
-            } else */ if(finalFootprintB.getArea() < minArea) {
+            } else  if(finalFootprintB.getArea() < minArea) {
                 smallFootprints.add(finalFootprintB);
             }
             else {
@@ -221,8 +224,8 @@ public class LandParcelOptimizer {
 
     public Geometry splitPolygon(Geometry boundingBox, Geometry footprint){
         try {
-
-            Geometry intersect = boundingBox.intersection(validate(TopologyPreservingSimplifier.simplify(footprint, 0.15)));
+            Geometry intersect = boundingBox.intersection(validate(footprint));
+            //Geometry intersect = boundingBox.intersection(validate(TopologyPreservingSimplifier.simplify(footprint, tolerance)));
             return new GeometryFactory().createPolygon(CoordinateArrays.removeRepeatedPoints(intersect.getCoordinates()));
 
         } catch (TopologyException e){

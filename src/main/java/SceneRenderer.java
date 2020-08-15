@@ -133,7 +133,7 @@ public class SceneRenderer {
             Polygon polygon = ConvertPolygon(geometries.get(i));
             polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
             polygon.setStroke(Color.GRAY);
-            polygon.setStrokeWidth(0.25f);
+            polygon.setStrokeWidth(0.05f);
             polygon.setOnMouseEntered(mouseOver);
             polygon.setUserData(geometries.get(i));
             root.getChildren().add(polygon);

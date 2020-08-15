@@ -27,7 +27,7 @@ public class Main extends Application {
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
-            Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.25,30);
+            Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30);
             SceneRenderer.render(footprints);
 
         }

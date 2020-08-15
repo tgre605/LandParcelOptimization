@@ -88,7 +88,7 @@ public class LandParcelOptimizer {
             } else if(!hasTriangle && newHasTriangle){
                 finalFootprintA = footprintA;
                 finalFootprintB = footprintB;
-            }  else if(!hasRoadAccess && newHasRoadAccess && new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() < streetAccessLevel){
+            }  else if(!hasRoadAccess && newHasRoadAccess && new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() > streetAccessLevel){
                 finalFootprintA = newFootprintA;
                 finalFootprintB = newFootprintB;
             }
@@ -104,8 +104,10 @@ public class LandParcelOptimizer {
             double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
 
             if(isTriangle(finalFootprintA, triangleTolerance)  && finalFootprintA.getArea() < triangleMinArea){
+                System.out.println("TRIANGLE");
                 smallFootprints.add(finalFootprintA);
             } else if(footprintAEdge > minStreetWidth){
+                System.out.println("EDGE");
                 smallFootprints.add(finalFootprintA);
             } else if(finalFootprintA.getArea() < minArea) {
                 smallFootprints.add(finalFootprintA);
@@ -119,8 +121,9 @@ public class LandParcelOptimizer {
                 System.out.println("TRIANGLE");
                 smallFootprints.add(finalFootprintB);
             } else if(footprintBEdge > minStreetWidth){
+                System.out.println("EDGE");
                 smallFootprints.add(finalFootprintB);
-            } else  if(finalFootprintB.getArea() < minArea) {
+            } else if(finalFootprintB.getArea() < minArea) {
                 smallFootprints.add(finalFootprintB);
             }
             else {

@@ -60,35 +60,22 @@ public class LandParcelOptimizer {
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
-            //footprintA = DouglasPeuckerSimplifier.simplify(footprintA, tolerance);
-            //footprintB = DouglasPeuckerSimplifier.simplify(footprintB, tolerance);
-
-            if(footprintA == null || footprintB == null){
-                largeFootprints.remove(0);
-                continue;
+            boolean hasTriangle  = true,hasRoadAccess = true;
+            if(footprintA != null && footprintB != null) {
+                hasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(footprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(footprintB, tolerance));
+                hasRoadAccess = !hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
             }
-
-            boolean hasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(footprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(footprintB, tolerance));
-            boolean hasRoadAccess =!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
-
 
             //Rotated Split
             boundingBoxes = halfRectangle(boundingBox, true);
             Geometry newFootprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry newFootprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
-            //newFootprintA = DouglasPeuckerSimplifier.simplify(newFootprintA, tolerance);
-            //newFootprintB = DouglasPeuckerSimplifier.simplify(newFootprintB, tolerance);
-
-            try{
-                TopologyPreservingSimplifier.simplify(newFootprintA, tolerance);
-                TopologyPreservingSimplifier.simplify(newFootprintB, tolerance);
-            } catch (Exception e){
-                System.out.println("WOWEE");
+            boolean newHasTriangle  = true,newHasRoadAccess  = true;
+            if(newFootprintA != null && newFootprintB != null) {
+                newHasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(newFootprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(newFootprintB, tolerance));
+                newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
             }
-
-            boolean newHasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(newFootprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(newFootprintB, tolerance));
-            boolean newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
 
             //Assessment
             Geometry finalFootprintA = footprintA;
@@ -104,6 +91,12 @@ public class LandParcelOptimizer {
                 finalFootprintA = newFootprintA;
                 finalFootprintB = newFootprintB;
             }
+
+             if(finalFootprintA == null || finalFootprintB == null){
+
+                 largeFootprints.remove(0);
+                 continue;
+             }
 
 
             double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);

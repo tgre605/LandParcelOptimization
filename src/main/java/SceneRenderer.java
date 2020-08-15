@@ -25,8 +25,8 @@ import java.util.*;
 public class SceneRenderer {
     private static DragContext sceneDragContext = new DragContext();
     private static Vector2D mousePosition = new Vector2D();
-    private static ArrayList<landParcel> landParcels = new ArrayList<>();
-    private static ArrayList<landParcel> debugLandParcels = new ArrayList<>();
+    private static ArrayList<LandParcel> LandParcels = new ArrayList<>();
+    private static ArrayList<LandParcel> debugLandParcels = new ArrayList<>();
     private static ArrayList<Geometry> geometries = new ArrayList<>();
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
 
@@ -50,11 +50,11 @@ public class SceneRenderer {
     public static void render(Geometry[] geometries){
         SceneRenderer.geometries.addAll(Arrays.asList(geometries));
     }
-    public static void render(landParcel landParcel){
-        render(new landParcel[] {landParcel});
+    public static void render(LandParcel landParcel){
+        render(new LandParcel[] {landParcel});
     }
-    public static void render(landParcel[] landParcels){
-        SceneRenderer.landParcels.addAll(Arrays.asList(landParcels));
+    public static void render(LandParcel[] LandParcels){
+        SceneRenderer.LandParcels.addAll(Arrays.asList(LandParcels));
     }
     public static void render(Coordinate coordinate){
         render(new Coordinate[] {coordinate});
@@ -63,11 +63,11 @@ public class SceneRenderer {
         SceneRenderer.coordinates.addAll(Arrays.asList(coordinates));
     }
 
-    public static void debugRender(landParcel landParcel){
-        debugRender(new landParcel[] {landParcel});
+    public static void debugRender(LandParcel landParcel){
+        debugRender(new LandParcel[] {landParcel});
     }
-    public static void debugRender(landParcel[] landParcels){
-        SceneRenderer.debugLandParcels.addAll(Arrays.asList(landParcels));
+    public static void debugRender(LandParcel[] LandParcels){
+        SceneRenderer.debugLandParcels.addAll(Arrays.asList(LandParcels));
     }
 
 
@@ -93,7 +93,7 @@ public class SceneRenderer {
                         textString += "center: " + geometry.toString() + "\n";
                         text.setText( textString);
                     } catch (ClassCastException ce){
-                        landParcel geometry = (landParcel) ((Polygon) obj).getUserData();
+                        LandParcel geometry = (LandParcel) ((Polygon) obj).getUserData();
 
                         String textString  = "Land Parcel: \n";
                         textString += "center: " + geometry.polygon.getCentroid().toString() + "\n";
@@ -118,14 +118,14 @@ public class SceneRenderer {
         root.getChildren().add(new ImageView(image));
 
 
-        for(int i= 0; i < landParcels.size(); i++){
+        for(int i = 0; i < LandParcels.size(); i++){
             Random r = new Random();
             //Get polygon land parcel polygon
-            Polygon polygon = ConvertPolygon(landParcels.get(i).polygon);
+            Polygon polygon = ConvertPolygon(LandParcels.get(i).polygon);
             Color color = Color.color(0, 0 , clamp(r.nextFloat() + 0.25, 0, 1));
             polygon.setFill(color);
             polygon.setOnMouseEntered(mouseOver);
-            polygon.setUserData(landParcels.get(i));
+            polygon.setUserData(LandParcels.get(i));
             root.getChildren().add(polygon);
         }
 

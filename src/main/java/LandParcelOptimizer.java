@@ -81,6 +81,8 @@ public class LandParcelOptimizer {
             //newFootprintA = DouglasPeuckerSimplifier.simplify(newFootprintA, tolerance);
             //newFootprintB = DouglasPeuckerSimplifier.simplify(newFootprintB, tolerance);
 
+
+
             boolean newHasTriangle = isTriangle(TopologyPreservingSimplifier.simplify(newFootprintA, tolerance)) || isTriangle(TopologyPreservingSimplifier.simplify(newFootprintB, tolerance));
             boolean newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
 
@@ -127,6 +129,7 @@ public class LandParcelOptimizer {
         }
         for(int i =0; i < smallFootprints.size(); i++){
             smallFootprints.get(i).setUserData(i);
+            inputParcel.footprints.add(new footprint(smallFootprints.get(i)));
         }
         return smallFootprints.toArray(new Geometry[0]);
     }

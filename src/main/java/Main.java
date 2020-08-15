@@ -1,24 +1,10 @@
 import javafx.application.Application;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.Image ;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import javafx.scene.paint.Color;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 
-import java.awt.*;
-import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 class DragContext {
 
@@ -36,15 +22,16 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
-        ArrayList<landParcel> landParcels  = reader.getParcels();
+        ArrayList<LandParcel> LandParcels = reader.getParcels();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         SceneRenderer sceneRenderer = new SceneRenderer();
-        for (landParcel parcels: landParcels) {
+        for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 10, 0.5, 0.25);
             SceneRenderer.render(footprints);
+
         }
-        System.out.println("testing");
+        System.out.println("test");
         sceneRenderer.start(stage);
     }
 

@@ -9,7 +9,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.math.Vector2D;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -20,20 +19,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-import static java.lang.Math.floor;
-
 public class JsonReader {
     int gridWidth = 20;
     int gridHeight = 20;
     ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
-    ArrayList<landParcel> parcels = new ArrayList<>();
-    ArrayList<landParcel>[][] world = new ArrayList[gridWidth][gridHeight];
+    ArrayList<LandParcel> parcels = new ArrayList<>();
+    ArrayList<LandParcel>[][] world = new ArrayList[gridWidth][gridHeight];
 
 
     public JsonReader(String file) throws IOException {
         for(int i = 0; i < gridWidth; i++){
             for(int j = 0; j < gridHeight; j++){
-                world[i][j] = new ArrayList<landParcel>();
+                world[i][j] = new ArrayList<LandParcel>();
             }
         }
         JSONParser jsonParser = new JSONParser();
@@ -65,15 +62,15 @@ public class JsonReader {
         polygon.forEach(line -> parseVertices((JSONObject) line));
         // JTS requires list coordinates to have start and end coordinates to be the same
         temp.add(temp.get(0));
-        landParcel.type landType = landParcel.type.undefined;
+        LandParcel.type landType = LandParcel.type.undefined;
         if(landTypeJSON.compareTo("residential") == 0){
-            landType = landParcel.type.residential;
+            landType = LandParcel.type.residential;
         } else if(landTypeJSON.compareTo("commercial") == 0){
-            landType = landParcel.type.commercial;
+            landType = LandParcel.type.commercial;
         } else if(landTypeJSON.compareTo("industry") == 0){
-            landType = landParcel.type.industry;
+            landType = LandParcel.type.industry;
         }
-        landParcel newPolygon = new landParcel(temp, landType, population, populationDensity);
+        LandParcel newPolygon = new LandParcel(temp, landType, population, populationDensity);
         Point centrePoint = newPolygon.polygon.getCentroid();
         int[] xyPoints = findPointInGrid(centrePoint, width, height);
         newPolygon.setGridLocaiton(xyPoints);
@@ -89,11 +86,11 @@ public class JsonReader {
         this.temp.add(tempVector);
     }
 
-    public ArrayList<landParcel> getParcels() {
+    public ArrayList<LandParcel> getParcels() {
         return parcels;
     }
 
-    public ArrayList<landParcel>[][] getWorld(){
+    public ArrayList<LandParcel>[][] getWorld(){
         return world;
     }
 

@@ -1,7 +1,6 @@
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
-import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class LandParcelOptimizer {
         return smallFootprints.toArray(new Geometry[0]);
     }
     */
-    public Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
+    public Geometry[] BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
@@ -134,7 +133,7 @@ public class LandParcelOptimizer {
         }
         for(int i =0; i < smallFootprints.size(); i++){
             smallFootprints.get(i).setUserData(i);
-            inputParcel.footprints.add(new footprint(smallFootprints.get(i)));
+            inputParcel.footprints.add(new Footprint(smallFootprints.get(i)));
         }
         return smallFootprints.toArray(new Geometry[0]);
     }

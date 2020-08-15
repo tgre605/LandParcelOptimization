@@ -24,12 +24,13 @@ public class Main extends Application {
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
+        BuildingPlacer buildingPlacer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 10, 0.5, 0.25);
             SceneRenderer.render(footprints);
-
+            buildingPlacer.placeBuildings(parcels);
         }
         System.out.println("test");
         sceneRenderer.start(stage);

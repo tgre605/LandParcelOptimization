@@ -10,7 +10,8 @@ public class landParcel {
 
     public enum type{residential, commercial, industry, undefined}
     public Polygon polygon = new Polygon(null, null, new GeometryFactory());
-    public ArrayList<building> buildingFootprints = new ArrayList<>();
+    public ArrayList<footprints> footprints = new ArrayList<>();
+    public ArrayList<building> building = new ArrayList<>();
     public ArrayList<landParcel> neighbours = new ArrayList<>();
     public int[] gridLocaiton;
     public int id;

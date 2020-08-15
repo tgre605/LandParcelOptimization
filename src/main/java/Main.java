@@ -44,7 +44,7 @@ public class Main extends Application {
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 10, 0.5, 0.25);
             SceneRenderer.render(footprints);
         }
-        System.out.println("test");
+        System.out.println("testing");
         sceneRenderer.start(stage);
     }
 

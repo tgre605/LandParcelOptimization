@@ -1,5 +1,6 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 
 import java.nio.file.Path;
@@ -28,9 +29,15 @@ public class Main extends Application {
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30);
-            SceneRenderer.render(footprints);
-
+            //SceneRenderer.render(footprints);
         }
+        Footprint testFootprint = LandParcels.get(2).footprints.get(128);
+        Coordinate coordinateA = testFootprint.geometry.getCoordinates()[0];
+        Coordinate coordinateB = testFootprint.geometry.getCoordinates()[1];
+        Coordinate[] coordinates = new Coordinate[]{coordinateA, coordinateB};
+        testFootprint.roadsideEdges.put(coordinates, new Road(null, null, null));
+        SceneRenderer.render(testFootprint.geometry);
+
         System.out.println("test");
         sceneRenderer.start(stage);
     }

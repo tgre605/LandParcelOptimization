@@ -16,14 +16,20 @@ import javafx.stage.Stage;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.math.Vector2D;
 
+
+import java.awt.geom.AffineTransform;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 
 public class SceneRenderer {
+    private static double scale = 10.76422503423912;
+
     private static DragContext sceneDragContext = new DragContext();
     private static Vector2D mousePosition = new Vector2D();
 
@@ -75,6 +81,13 @@ public class SceneRenderer {
         SceneRenderer.lines.addAll(Arrays.asList(coordinates));
     }
 
+    static Coordinate Scale(Point input){
+        Coordinate coordinate =  new Coordinate();
+        coordinate.x = input.getX() * scale;
+        coordinate.y = input.getY() * scale;
+        return coordinate;
+    }
+
 
     static EventHandler<MouseEvent> mouseOver = new EventHandler<MouseEvent>() {
         @Override
@@ -87,7 +100,7 @@ public class SceneRenderer {
                     Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
 
                     String textString = "Geometry: \n";
-                    textString    += "center: " + geometry.getCentroid().toString() + "\n";
+                    textString    += "center: " + Scale(geometry.getCentroid()).toString() + "\n";
                     textString += "Id: " + geometry.getUserData()+ "\n";
                     textString += "Is Triangle: " + LandParcelOptimizer.isTriangle(geometry, 0.25);
                     text.setText(textString);
@@ -121,7 +134,11 @@ public class SceneRenderer {
         FileInputStream input = new FileInputStream(currentDir.toAbsolutePath() + "/input/water_map.png");
 
         Image image = new Image(input);
-        root.getChildren().add(new ImageView(image));
+        ImageView imageView = new ImageView(image);
+        imageView.setFitWidth(image.getWidth());
+        imageView.setFitHeight(image.getHeight());
+
+        root.getChildren().add(imageView);
 
 
         for(int i = 0; i < LandParcels.size(); i++){

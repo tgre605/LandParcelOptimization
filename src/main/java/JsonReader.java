@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+
 public class JsonReader {
     int gridWidth = 20;
     int gridHeight = 20;
@@ -80,8 +81,8 @@ public class JsonReader {
     }
 
     private void parseVertices (JSONObject polygon){
-        double xPoint = (double) polygon.get("x");
-        double zPoint = (double) polygon.get("z");
+        double xPoint = ((double) polygon.get("x"));
+        double zPoint = ((double) polygon.get("z"));
         Coordinate tempVector = new Coordinate(xPoint, zPoint);
         this.temp.add(tempVector);
     }

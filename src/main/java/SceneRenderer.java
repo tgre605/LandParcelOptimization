@@ -8,6 +8,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -25,10 +26,12 @@ import java.util.*;
 public class SceneRenderer {
     private static DragContext sceneDragContext = new DragContext();
     private static Vector2D mousePosition = new Vector2D();
+
     private static ArrayList<LandParcel> LandParcels = new ArrayList<>();
-    private static ArrayList<LandParcel> debugLandParcels = new ArrayList<>();
     private static ArrayList<Geometry> geometries = new ArrayList<>();
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
+    private static ArrayList<Geometry> outlineGeometries = new ArrayList<>();
+    private static ArrayList<Coordinate> lines = new ArrayList<>();
 
     private static Text text = new Text();
 
@@ -50,6 +53,11 @@ public class SceneRenderer {
     public static void render(Geometry[] geometries){
         SceneRenderer.geometries.addAll(Arrays.asList(geometries));
     }
+
+    public static void renderOutline(Geometry[] geometries){
+        SceneRenderer.outlineGeometries.addAll(Arrays.asList(geometries));
+    }
+
     public static void render(LandParcel landParcel){
         render(new LandParcel[] {landParcel});
     }
@@ -63,11 +71,8 @@ public class SceneRenderer {
         SceneRenderer.coordinates.addAll(Arrays.asList(coordinates));
     }
 
-    public static void debugRender(LandParcel landParcel){
-        debugRender(new LandParcel[] {landParcel});
-    }
-    public static void debugRender(LandParcel[] LandParcels){
-        SceneRenderer.debugLandParcels.addAll(Arrays.asList(LandParcels));
+    public static void renderLine(Coordinate[] coordinates){
+        SceneRenderer.lines.addAll(Arrays.asList(coordinates));
     }
 
 
@@ -140,6 +145,16 @@ public class SceneRenderer {
             root.getChildren().add(polygon);
         }
 
+        for(int i= 0; i < outlineGeometries.size(); i++){
+            Polygon polygon = ConvertPolygon(outlineGeometries.get(i));
+            polygon.setFill(Color.TRANSPARENT);
+            polygon.setStroke(Color.GRAY);
+            polygon.setStrokeWidth(0.05f);
+            polygon.setOnMouseEntered(mouseOver);
+            polygon.setUserData(outlineGeometries.get(i));
+            root.getChildren().add(polygon);
+        }
+
         for(int i= 0; i < coordinates.size(); i++){
             Circle circle = new Circle();
             circle.setCenterX(coordinates.get(i).x);
@@ -150,6 +165,14 @@ public class SceneRenderer {
             circle.setFill(Color.RED.interpolate(Color.DARKRED, (double) i/coordinates.size()));
             root.getChildren().add(circle);
         }
+
+        for(int i= 0; i < lines.size()-1; i+=2){
+            Line line = new Line(lines.get(i).x, lines.get(i).y, lines.get(i+1).x, lines.get(i+1).y);
+            line.setStroke(Color.YELLOW);
+            line.setStrokeWidth(0.075f);
+            root.getChildren().add(line);
+        }
+
 
         text.setText("");
         text.setX(20);

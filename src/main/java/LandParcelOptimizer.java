@@ -1,12 +1,11 @@
+import com.sun.deploy.xml.GeneralEntity;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.geomgraph.Edge;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Random;
+import java.util.*;
 
 
 public class LandParcelOptimizer {
@@ -46,7 +45,7 @@ public class LandParcelOptimizer {
         return smallFootprints.toArray(new Geometry[0]);
     }
     */
-    public Geometry[] BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea){
+    public LandParcel BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
@@ -55,6 +54,7 @@ public class LandParcelOptimizer {
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
             Geometry boundingBox = minimumDiameter.getMinimumRectangle();
 
+            boolean switchedBoundingBox = false;
             //Normal Split
             Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
@@ -65,6 +65,8 @@ public class LandParcelOptimizer {
                 hasTriangle = isTriangle(footprintA, triangleTolerance) || isTriangle(footprintB, triangleTolerance);
                 hasRoadAccess = !hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
             }
+
+            LineString cuttingEdge = getCommonEdge(boundingBoxes[0], boundingBoxes[1]);
 
             //Rotated Split
             boundingBoxes = halfRectangle(boundingBox, true);
@@ -77,27 +79,32 @@ public class LandParcelOptimizer {
                 newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
             }
 
+            LineString newCuttingEdge = getCommonEdge(boundingBoxes[0], boundingBoxes[1]);
+
             //Assessment
             Geometry finalFootprintA = footprintA;
             Geometry finalFootprintB = footprintB;
 
+            boolean rotatedSplit = false;
 
-             if(hasTriangle && !newHasTriangle){
+            if(hasTriangle && !newHasTriangle){
                 finalFootprintA = newFootprintA;
                 finalFootprintB = newFootprintB;
+                rotatedSplit = true;
             } else if(!hasTriangle && newHasTriangle){
                 finalFootprintA = footprintA;
                 finalFootprintB = footprintB;
             }  else if(!hasRoadAccess && newHasRoadAccess && new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() > streetAccessLevel){
                 finalFootprintA = newFootprintA;
                 finalFootprintB = newFootprintB;
+                rotatedSplit = true;
             }
 
-             if(finalFootprintA == null || finalFootprintB == null){
-                 smallFootprints.add(largeFootprints.get(0));
-                 largeFootprints.remove(0);
-                 continue;
-             }
+            if(finalFootprintA == null || finalFootprintB == null){
+                smallFootprints.add(largeFootprints.get(0));
+                largeFootprints.remove(0);
+                continue;
+            }
 
 
             double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
@@ -117,8 +124,8 @@ public class LandParcelOptimizer {
             }
 
 
+
             if(isTriangle(finalFootprintB, triangleTolerance) && finalFootprintB.getArea() < triangleMinArea){
-                System.out.println("TRIANGLE");
                 smallFootprints.add(finalFootprintB);
             } else if(footprintBEdge > minStreetWidth){
                 System.out.println("EDGE");
@@ -130,13 +137,40 @@ public class LandParcelOptimizer {
                 largeFootprints.add(finalFootprintB);
             }
 
+
+            //Add road
+            if(rotatedSplit)
+                cuttingEdge = newCuttingEdge;
+
+            Geometry intersections = largeFootprints.get(0).intersection(cuttingEdge);
+            if(intersections.getCoordinates().length == 2){
+                if(intersections.getCoordinates()[0].distance(intersections.getCoordinates()[1]) > roadLength) {
+                    inputParcel.subroads.add(new Road(intersections.getCoordinates()[0], intersections.getCoordinates()[1], Road.RoadType.subRoad));
+                }
+            }
+            if(intersections.getCoordinates().length == 1) {
+                if (cuttingEdge.getCoordinates()[0].distance(cuttingEdge.getCoordinates()[1]) > roadLength) {
+                    SceneRenderer.render(intersections.getCoordinates());
+                }
+            }
+
             largeFootprints.remove(0);
         }
-        for(int i =0; i < smallFootprints.size(); i++){
-            smallFootprints.get(i).setUserData(i);
-            inputParcel.footprints.add(new Footprint(smallFootprints.get(i)));
+
+        //Assign Land Parcel Roads
+        Coordinate[] parcelCoordinates = inputParcel.polygon.getCoordinates();
+        for(int i = 0; i < inputParcel.polygon.getCoordinates().length-1; i++){
+            inputParcel.subroads.add(new Road(parcelCoordinates[i], parcelCoordinates[i+1], Road.RoadType.mainRoad));
         }
-        return smallFootprints.toArray(new Geometry[0]);
+
+        //Generate Footprints
+        for(int i =0; i < smallFootprints.size(); i++){
+            Footprint footprint = new Footprint(smallFootprints.get(i));
+            footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
+            inputParcel.footprints.add(footprint);
+            smallFootprints.get(i).setUserData(footprint.id);
+        }
+        return inputParcel;
     }
 
     boolean hasRoadAccess(Geometry landParcelPolygon, Geometry footprint){
@@ -148,6 +182,24 @@ public class LandParcelOptimizer {
             }
         }
         return false;
+    }
+
+    Footprint assignRoadSideEdges(ArrayList<Road> roads, Footprint footprint){
+        Coordinate[] coordinates = footprint.geometry.getCoordinates();
+        for(int i= 0; i < coordinates.length-1; i++){
+            for(int j = 0; j < roads.size(); j++) {
+                if (edgeOnLine(roads.get(j).coordinateA, roads.get(j).coordinateB, coordinates[i], coordinates[i + 1])) {
+                    footprint.roadsideEdges.put(new Coordinate[]{coordinates[i], coordinates[i + 1]}, roads.get(j));
+                }
+            }
+        }
+        return footprint;
+    }
+
+    LineString getCommonEdge(Geometry boundingBoxA, Geometry boundingBoxB){
+        ArrayList<Coordinate> coordinates = new ArrayList<Coordinate>(Arrays.asList(boundingBoxA.getCoordinates()));
+        coordinates.retainAll(new ArrayList<Coordinate>(Arrays.asList(boundingBoxB.getCoordinates())));
+        return new GeometryFactory().createLineString(new Coordinate[]{coordinates.get(0), coordinates.get(1)});
     }
 
     double getLongestRoadEdge(Geometry landParcelPolygon, Geometry footprint){

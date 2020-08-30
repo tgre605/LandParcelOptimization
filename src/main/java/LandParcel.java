@@ -11,6 +11,7 @@ public class LandParcel {
     public Polygon polygon = new Polygon(null, null, new GeometryFactory());
     public ArrayList<Footprint> footprints = new ArrayList<>();
     public ArrayList<LandParcel> neighbours = new ArrayList<>();
+    public ArrayList<Road> subroads = new ArrayList<>();
     public int[] gridLocaiton;
     public int id;
 
@@ -33,6 +34,14 @@ public class LandParcel {
 
     public LandParcel(Geometry polygon){
        this.polygon = new GeometryFactory().createPolygon(polygon.getCoordinates());
+    }
+
+    public Geometry[] getFootprintGeometries(){
+       Geometry[] geometries = new Geometry[footprints.size()];
+       for(int i= 0 ; i < footprints.size(); i++){
+           geometries[i] = footprints.get(i).geometry;
+       }
+       return geometries;
     }
 
     public Coordinate[] getPoints(){

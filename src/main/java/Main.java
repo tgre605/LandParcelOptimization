@@ -28,13 +28,9 @@ public class Main extends Application {
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
-            parcels = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30, 6);;
-            SceneRenderer.render(parcels.getFootprintGeometries());
-            for(int i = 0; i < parcels.subroads.size(); i++){
-                SceneRenderer.renderLine(new Coordinate[]{parcels.subroads.get(i).coordinateA, parcels.subroads.get(i).coordinateB});
-            }
+            Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30);
+            //SceneRenderer.render(footprints);
         }
-
         Footprint testFootprint = LandParcels.get(2).footprints.get(128);
         Coordinate coordinateA = testFootprint.geometry.getCoordinates()[0];
         Coordinate coordinateB = testFootprint.geometry.getCoordinates()[1];

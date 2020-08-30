@@ -29,14 +29,17 @@ public class Main extends Application {
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
             Geometry[] footprints = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30);
-            //SceneRenderer.render(footprints);
+            SceneRenderer.render(footprints);
         }
-        Footprint testFootprint = LandParcels.get(2).footprints.get(128);
-        Coordinate coordinateA = testFootprint.geometry.getCoordinates()[0];
-        Coordinate coordinateB = testFootprint.geometry.getCoordinates()[1];
+        Footprint testFootprint = LandParcels.get(2).footprints.get(180);
+        Coordinate coordinateA = testFootprint.geometry.getCoordinates()[2];
+        Coordinate coordinateB = testFootprint.geometry.getCoordinates()[3];
         Coordinate[] coordinates = new Coordinate[]{coordinateA, coordinateB};
         testFootprint.roadsideEdges.put(coordinates, new Road(null, null, null));
+        BuildingPlacer placer = new BuildingPlacer();
+        placer.setRoadCentreT(testFootprint);
         SceneRenderer.render(testFootprint.geometry);
+        SceneRenderer.render(testFootprint.roadCentre);
 
         System.out.println("test");
         sceneRenderer.start(stage);

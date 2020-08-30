@@ -10,6 +10,7 @@ public class Footprint {
     static int nextId;
     Hashtable<Coordinate[], Road> roadsideEdges= new Hashtable<Coordinate[], Road>();
     Building building;
+    Coordinate roadCentre;
 
     public Footprint (Geometry shape){
         this.geometry = shape;

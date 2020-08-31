@@ -191,6 +191,7 @@ public class LandParcelOptimizer {
                 if (edgeOnLine(roads.get(j).coordinateA, roads.get(j).coordinateB, coordinates[i], coordinates[i + 1])) {
                     footprint.roadsideEdges.put(new Coordinate[]{coordinates[i], coordinates[i + 1]}, roads.get(j));
                 }
+
             }
         }
         return footprint;
@@ -237,7 +238,12 @@ public class LandParcelOptimizer {
 
         double total = lineDistance - (LineAA + AB + BLineB);
 
-        return total < 0.00001 && total > -0.00001;
+        double LineAB = LineA.distance(B);
+        double ALineB = A.distance(LineB);
+
+        double otherTotal = lineDistance - (LineAB + AB + ALineB);
+
+        return (total < 0.00001 && total > -0.00001) || (otherTotal < 0.00001 && otherTotal > -0.00001);
     }
 
     public Geometry[] halfRectangle(Geometry boundingBox, boolean invertResult){

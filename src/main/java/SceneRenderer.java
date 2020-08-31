@@ -97,21 +97,22 @@ public class SceneRenderer {
             if ( obj instanceof Polygon )
             {
                 try {
-                    Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
+                    Coordinate geometry = (Coordinate) ((Polygon) obj).getUserData();
 
-                    String textString = "Geometry: \n";
-                    textString    += "center: " + Scale(geometry.getCentroid()).toString() + "\n";
-                    textString += "Id: " + geometry.getUserData()+ "\n";
-                    textString += "Area:" + geometry.getArea() * SceneRenderer.scale + "\n";
-                    textString += "Is Triangle: " + LandParcelOptimizer.isTriangle(geometry, 0.25);
-                    text.setText(textString);
+                    String textString  = "Coordinate: \n";
+                    textString += "center: " + geometry.toString() + "\n";
+                    text.setText( textString);
+
                 } catch (ClassCastException e){
                     try {
-                        Coordinate geometry = (Coordinate) ((Polygon) obj).getUserData();
+                        Geometry geometry = (Geometry) ((Polygon) obj).getUserData();
 
-                        String textString  = "Coordinate: \n";
-                        textString += "center: " + geometry.toString() + "\n";
-                        text.setText( textString);
+                        String textString = "Geometry: \n";
+                        textString    += "center: " + Scale(geometry.getCentroid()).toString() + "\n";
+                        textString += "Id: " + geometry.getUserData()+ "\n";
+                        textString += "Area:" + geometry.getArea() * SceneRenderer.scale + "\n";
+                        textString += "Is Triangle: " + LandParcelOptimizer.isTriangle(geometry, 0.25);
+                        text.setText(textString);
                     } catch (ClassCastException ce){
                         LandParcel geometry = (LandParcel) ((Polygon) obj).getUserData();
 

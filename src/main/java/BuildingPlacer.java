@@ -4,15 +4,31 @@ import org.locationtech.jts.geom.util.AffineTransformation;
 
 public class BuildingPlacer {
     public void placeBuildings(LandParcel landParcel){
+
         for (Footprint footprint: landParcel.footprints) {
-            footprint.addBuilding(new Building(footprint));
+            if(footprint.roadsideEdges.size()>0){
+                footprint.addBuilding(new Building(footprint));
+            }
         }
     }
 
+    public void placeBuildingsT(Footprint footprint){
+        footprint.addBuilding(new Building(footprint));
+    }
     public void setRoadCentre(LandParcel landParcel){
         for(Footprint footprint: landParcel.footprints){
-            Coordinate[] roadSideEdges = footprint.roadsideEdges.keys().nextElement();
-            footprint.roadCentre = findCentre(roadSideEdges);
+            if(footprint.roadsideEdges.size() > 0){
+                Coordinate[] roadSideEdges = null;
+                A: for (Road road: footprint.roadsideEdges.values()) {
+                    if(road.roadType == Road.RoadType.subRoad){
+                        roadSideEdges = footprint.roadsideEdges.keys().nextElement();
+                        break A;
+                    } else {
+                        roadSideEdges = footprint.roadsideEdges.keys().nextElement();
+                    }
+                }
+                footprint.roadCentre = findCentre(roadSideEdges);
+            }
         }
     }
 

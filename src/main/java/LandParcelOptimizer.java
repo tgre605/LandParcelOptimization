@@ -1,7 +1,5 @@
-import com.sun.deploy.xml.GeneralEntity;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
-import org.locationtech.jts.geomgraph.Edge;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 

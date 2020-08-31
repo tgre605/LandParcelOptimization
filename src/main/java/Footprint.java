@@ -11,10 +11,14 @@ public class Footprint {
     Hashtable<Coordinate[], Road> roadsideEdges= new Hashtable<Coordinate[], Road>();
     Building building;
     Coordinate roadCentre;
+    public double population;
+    public double populationDensity;
 
     public Footprint (Geometry shape){
         this.geometry = shape;
         id = nextId;
+        population = 653;
+        populationDensity = 0.003658769001167474;
         nextId++;
     }
 

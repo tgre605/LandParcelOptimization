@@ -32,8 +32,10 @@ public class Main extends Application {
             parcels = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30, 6);
             SceneRenderer.render(parcels.getFootprintGeometries());
             placer.setRoadCentre(parcels);
+            placer.surroundingFootprints(parcels);
             placer.placeBuildings(parcels);
             for (Footprint footprint: parcels.footprints) {
+                placer.createDriveway(footprint);
                 if(footprint.building != null){
                     SceneRenderer.render(footprint.building.polygon);
                 }

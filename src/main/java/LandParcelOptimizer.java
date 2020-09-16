@@ -166,6 +166,7 @@ public class LandParcelOptimizer {
             Footprint footprint = new Footprint(smallFootprints.get(i));
             footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
             inputParcel.footprints.add(footprint);
+            footprint.landParcel = inputParcel;
             smallFootprints.get(i).setUserData(footprint.id);
         }
         return inputParcel;
@@ -181,7 +182,7 @@ public class LandParcelOptimizer {
         }
         return false;
     }
-
+    
     Footprint assignRoadSideEdges(ArrayList<Road> roads, Footprint footprint){
         Coordinate[] coordinates = footprint.geometry.getCoordinates();
         for(int i= 0; i < coordinates.length-1; i++){

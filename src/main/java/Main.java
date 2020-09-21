@@ -35,7 +35,10 @@ public class Main extends Application {
             placer.surroundingFootprints(parcels);
             placer.placeBuildings(parcels);
             for (Footprint footprint: parcels.footprints) {
-                placer.createDriveway(footprint);
+                if(footprint.id == 157 || footprint.id == 165){
+                    placer.createDriveway(footprint);
+                }
+                
                 if(footprint.building != null){
                     SceneRenderer.render(footprint.building.polygon);
                 }

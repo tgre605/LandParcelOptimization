@@ -12,6 +12,7 @@ public class Footprint {
     public ArrayList<Footprint> neighbours = new ArrayList<>();
     public LandParcel landParcel;
     Hashtable<Coordinate[], Road> roadsideEdges= new Hashtable<Coordinate[], Road>();
+    Coordinate[] drivewayVertices = null;
     Building building;
     LineString driveway;
     Coordinate roadCentre;

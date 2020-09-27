@@ -158,7 +158,7 @@ public class SceneRenderer {
             Polygon polygon = ConvertPolygon(geometries.get(i));
             polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
             polygon.setStroke(Color.GRAY);
-            polygon.setStrokeWidth(0.05f);
+            polygon.setStrokeWidth(0.01f);
             polygon.setOnMouseEntered(mouseOver);
             polygon.setUserData(geometries.get(i));
             root.getChildren().add(polygon);
@@ -168,7 +168,7 @@ public class SceneRenderer {
             Polygon polygon = ConvertPolygon(outlineGeometries.get(i));
             polygon.setFill(Color.TRANSPARENT);
             polygon.setStroke(Color.GRAY);
-            polygon.setStrokeWidth(0.05f);
+            polygon.setStrokeWidth(0.01f);
             polygon.setOnMouseEntered(mouseOver);
             polygon.setUserData(outlineGeometries.get(i));
             root.getChildren().add(polygon);
@@ -178,7 +178,7 @@ public class SceneRenderer {
             Circle circle = new Circle();
             circle.setCenterX(coordinates.get(i).x);
             circle.setCenterY(coordinates.get(i).y);
-            circle.setRadius(0.5);
+            circle.setRadius(0.25);
             circle.setOnMouseEntered(mouseOver);
             circle.setUserData(coordinates.get(i));
             circle.setFill(Color.RED.interpolate(Color.DARKRED, (double) i/coordinates.size()));

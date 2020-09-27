@@ -1,10 +1,10 @@
-import com.sun.deploy.xml.GeneralEntity;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
-import org.locationtech.jts.geomgraph.Edge;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.*;
 
 
@@ -12,51 +12,22 @@ public class LandParcelOptimizer {
 
     public double triangleTolerance = 0.25;
 
-    /*
-    public  Geometry[] BoundingBoxOptimization(landParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel){
-        ArrayList<Geometry> largeFootprints = new ArrayList<>();
-        ArrayList<Geometry> smallFootprints = new ArrayList<>();
-        largeFootprints.add(inputParcel.polygon);
-
-        while(largeFootprints.size() > 0){
-            Geometry currentFootprint = largeFootprints.get(0);
-            if(currentFootprint.getArea() > minArea && getLongestRoadEdge(inputParcel.polygon, currentFootprint) > minStreetWidth){
-                    MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
-                    Geometry boundingBox = minimumDiameter.getMinimumRectangle();
-
-                    Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
-                    Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
-                    Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
-
-                    if (!hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintA)) {
-                        boundingBoxes = halfRectangle(boundingBox, true);
-                        footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
-                        footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
-                    }
-
-                    largeFootprints.add(footprintA);
-                    largeFootprints.add(footprintB);
-
-            } else {
-                smallFootprints.add(currentFootprint);
-                largeFootprints.remove(0);
-            }
-        }
-        return smallFootprints.toArray(new Geometry[0]);
-    }
-    */
     public LandParcel BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
 
+
+
         while (largeFootprints.size() != 0){
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
             Geometry boundingBox = minimumDiameter.getMinimumRectangle();
 
-            boolean switchedBoundingBox = false;
             //Normal Split
             Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
+            if(isTriangle(largeFootprints.get(0), triangleTolerance * 5)){
+                boundingBoxes = getBoundingBoxForTriangles(boundingBox, false);
+            }
             Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
@@ -70,6 +41,9 @@ public class LandParcelOptimizer {
 
             //Rotated Split
             boundingBoxes = halfRectangle(boundingBox, true);
+            if(isTriangle(largeFootprints.get(0), triangleTolerance * 5)){
+                boundingBoxes = getBoundingBoxForTriangles(boundingBox, true);
+            }
             Geometry newFootprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
             Geometry newFootprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
 
@@ -137,7 +111,6 @@ public class LandParcelOptimizer {
                 largeFootprints.add(finalFootprintB);
             }
 
-
             //Add road
             if(rotatedSplit)
                 cuttingEdge = newCuttingEdge;
@@ -157,20 +130,150 @@ public class LandParcelOptimizer {
             largeFootprints.remove(0);
         }
 
+        //Generate Footprints
+        for(int i =0; i < smallFootprints.size(); i++){
+            Footprint footprint = new Footprint(smallFootprints.get(i));
+            footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
+            footprint.geometry = snapRoads(footprint, inputParcel);
+            inputParcel.footprints.add(footprint);
+            footprint.geometry.setUserData(i);
+        }
+
         //Assign Land Parcel Roads
         Coordinate[] parcelCoordinates = inputParcel.polygon.getCoordinates();
         for(int i = 0; i < inputParcel.polygon.getCoordinates().length-1; i++){
             inputParcel.subroads.add(new Road(parcelCoordinates[i], parcelCoordinates[i+1], Road.RoadType.mainRoad));
         }
+        Mesh mesh = new Mesh(inputParcel.footprints);
+        inputParcel = mesh.mergeRoads(inputParcel);
 
-        //Generate Footprints
-        for(int i =0; i < smallFootprints.size(); i++){
-            Footprint footprint = new Footprint(smallFootprints.get(i));
-            footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
-            inputParcel.footprints.add(footprint);
-            smallFootprints.get(i).setUserData(footprint.id);
-        }
         return inputParcel;
+    }
+
+    Geometry[] getBoundingBoxForTriangles(Geometry boundingBox, boolean invertResult){
+        double shiftAmount = 2.5;
+        Coordinate[] coordinates = boundingBox.getCoordinates();
+
+        double dist13 = coordinates[0].distance(coordinates[3]);
+        double dist12 = coordinates[0].distance(coordinates[1]);
+
+        Geometry rectangleA, rectangleB;
+
+        if (dist12 < dist13 && !invertResult){
+            double shiftX = (coordinates[0].x - coordinates[3].x)/shiftAmount;
+            double shiftY = (coordinates[0].y - coordinates[3].y)/shiftAmount;
+            double mid1x = (coordinates[0].x + coordinates[3].x)/2 - shiftX;
+            double mid1y = (coordinates[0].y + coordinates[3].y)/2 - shiftY;
+            double mid2x = (coordinates[1].x + coordinates[2].x)/2 - shiftX;
+            double mid2y = (coordinates[1].y + coordinates[2].y)/2 - shiftY;
+            Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
+            Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
+            rectangleA = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[0], midpoint1, midpoint2, coordinates[1], coordinates[0]});
+            rectangleB =new GeometryFactory().createPolygon(new Coordinate[]{coordinates[2], midpoint2,  midpoint1, coordinates[3], coordinates[2]});
+
+        } else{
+            double shiftX = (coordinates[0].x - coordinates[1].x)/shiftAmount;
+            double shiftY = (coordinates[0].y - coordinates[1].y)/shiftAmount;
+            double mid1x = (coordinates[0].x + coordinates[1].x)/2 - shiftX;
+            double mid1y = (coordinates[0].y + coordinates[1].y)/2 - shiftY;
+            double mid2x = (coordinates[2].x + coordinates[3].x)/2 - shiftX;
+            double mid2y = (coordinates[2].y + coordinates[3].y)/2 - shiftY;
+            Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
+            Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
+            rectangleA = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[0], midpoint1, midpoint2, coordinates[3], coordinates[0]});
+            rectangleB = new GeometryFactory().createPolygon(new Coordinate[]{coordinates[1], midpoint1, midpoint2, coordinates[2], coordinates[1]});
+        }
+        return new Geometry[]{rectangleA, rectangleB};
+    }
+
+    Polygon snapRoads(Footprint footprint, LandParcel parcel){
+        List<Coordinate> coordinates = Arrays.asList(footprint.geometry.getCoordinates());
+        /*
+        for(Coordinate[] roads : footprint.roadsideEdges.keySet()){
+            Road road = footprint.roadsideEdges.get(roads);
+            for(Coordinate[] otherRoads : footprint.roadsideEdges.keySet()){
+                Road otherRoad = footprint.roadsideEdges.get(roads);
+                if(otherRoads != roads) {
+                    if (road.coordinateA.distance(otherRoad.coordinateA) < 0.1){
+                        road.coordinateA = getMidPoint(road.coordinateA, otherRoad.coordinateA);
+                        otherRoad.coordinateA = getMidPoint(road.coordinateA, otherRoad.coordinateA);
+                    }
+                    if (road.coordinateA.distance(otherRoad.coordinateB) < 0.1){
+                        road.coordinateA = getMidPoint(road.coordinateA, otherRoad.coordinateB);
+                        otherRoad.coordinateB = getMidPoint(road.coordinateA, otherRoad.coordinateB);
+                    }
+                    if (road.coordinateB.distance(otherRoad.coordinateA) < 0.1){
+                        road.coordinateB = getMidPoint(road.coordinateB, otherRoad.coordinateA);
+                        otherRoad.coordinateA = getMidPoint(road.coordinateB, otherRoad.coordinateA);
+                    }
+                    if (road.coordinateB.distance(otherRoad.coordinateB) < 0.1){
+                        road.coordinateB = getMidPoint(road.coordinateB, otherRoad.coordinateB);
+                        otherRoad.coordinateB = getMidPoint(road.coordinateB, otherRoad.coordinateB);
+                    }
+                    footprint.roadsideEdges.replace(otherRoads, otherRoad);
+                }
+            }
+            footprint.roadsideEdges.replace(roads, road);
+            if(!pointOnParcelEdge(road.coordinateA, parcel))
+                road.coordinateA = generatedSnappedCoord(road.coordinateA);
+            if(!pointOnParcelEdge(road.coordinateB, parcel))
+                road.coordinateB = generatedSnappedCoord(road.coordinateB);
+            footprint.roadsideEdges.put(roads, road);
+        }
+         */
+        /*
+        for(Coordinate[] roads : footprint.roadsideEdges.keySet()){
+            Road road = footprint.roadsideEdges.get(roads);
+            if(!pointOnParcelEdge(road.coordinateA, parcel))
+                road.coordinateA = generatedSnappedCoord(road.coordinateA);
+            if(!pointOnParcelEdge(road.coordinateB, parcel))
+                road.coordinateB = generatedSnappedCoord(road.coordinateB);
+            footprint.roadsideEdges.put(roads, road);
+        }
+        */
+        /*
+        for(Coordinate[] road : footprint.roadsideEdges.keySet() ){
+            if(!pointOnParcelEdge(road[0], parcel)){
+                if(coordinates.indexOf(road[0]) != -1) {
+                    coordinates.set(coordinates.indexOf(road[0]), generatedSnappedCoord(road[0]));
+                } else {
+                    System.out.println(road[0]);
+                }
+            }
+            if(!pointOnParcelEdge(road[1], parcel)){
+                if(coordinates.indexOf(road[1]) != -1) {
+                    coordinates.set(coordinates.indexOf(road[1]), generatedSnappedCoord(road[0]));
+                } else {
+                    System.out.println(road[1]);
+                }
+            }
+        }
+        */
+        coordinates.set(coordinates.size() - 1, coordinates.get(0));
+        return new GeometryFactory().createPolygon(coordinates.toArray(new Coordinate[0]));
+    }
+
+    Coordinate getMidPoint(Coordinate coordinateA, Coordinate coordinateB){
+        return new Coordinate((coordinateA.x + coordinateB.x) / 2, (coordinateA.y + coordinateB.y) /2);
+    }
+
+    Coordinate generatedSnappedCoord(Coordinate coordinate){
+        BigDecimal bd = new BigDecimal(coordinate.x);
+        bd = bd.round(new MathContext(3));
+        coordinate.x = bd.doubleValue();
+        bd = new BigDecimal(coordinate.y);
+        bd = bd.round(new MathContext(3));
+        coordinate.y = bd.doubleValue();
+        return coordinate;
+    }
+
+    boolean pointOnParcelEdge(Coordinate coordinate, LandParcel parcel){
+        for(int i= 0; i < parcel.polygon.getCoordinates().length -1; i++){
+            if(pointOnLine(parcel.polygon.getCoordinates()[i], coordinate, parcel.polygon.getCoordinates()[i+1])){
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean hasRoadAccess(Geometry landParcelPolygon, Geometry footprint){
@@ -188,8 +291,8 @@ public class LandParcelOptimizer {
         Coordinate[] coordinates = footprint.geometry.getCoordinates();
         for(int i= 0; i < coordinates.length-1; i++){
             for(int j = 0; j < roads.size(); j++) {
-                if (edgeOnLine(roads.get(j).coordinateA, roads.get(j).coordinateB, coordinates[i], coordinates[i + 1])) {
-                    footprint.roadsideEdges.put(new Coordinate[]{coordinates[i], coordinates[i + 1]}, roads.get(j));
+                if (edgeOnLine(roads.get(j).start, roads.get(j).end, coordinates[i], coordinates[i + 1])) {
+                    footprint.roadsideIndex.put(i, roads.get(j));
                 }
 
             }
@@ -227,7 +330,16 @@ public class LandParcelOptimizer {
         return longestLength;
     }
 
+    // LineA -- A -- B -- LineB
+    boolean pointOnLine(Coordinate start, Coordinate mid, Coordinate end){
+        double lineDistance = start.distance(end);
+        double startToMid = start.distance(mid);
+        double midToEnd = mid.distance(end);
 
+        double total = lineDistance - (startToMid + midToEnd);
+
+        return (total < 0.00001 && total > -0.00001);
+    }
 
     // LineA -- A -- B -- LineB
     boolean edgeOnLine(Coordinate LineA, Coordinate LineB, Coordinate A, Coordinate B){

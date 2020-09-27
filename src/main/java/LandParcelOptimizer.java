@@ -137,6 +137,8 @@ public class LandParcelOptimizer {
             footprint.geometry = snapRoads(footprint, inputParcel);
             inputParcel.footprints.add(footprint);
             footprint.geometry.setUserData(i);
+            footprint.landParcel = inputParcel;
+            smallFootprints.get(i).setUserData(footprint.id);
         }
 
         //Assign Land Parcel Roads

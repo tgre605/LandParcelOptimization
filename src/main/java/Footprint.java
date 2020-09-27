@@ -1,5 +1,6 @@
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,13 +11,25 @@ public class Footprint {
     public int id;
     static int nextId;
     HashMap<Integer, Road> roadsideIndex = new HashMap<>();
+    public ArrayList<Footprint> neighbours = new ArrayList<>();
+    public LandParcel landParcel;
+    Coordinate[] drivewayVertices = null;
     Building building;
+    LineString driveway;
     Coordinate roadCentre;
+    public double population;
+    public double populationDensity;
 
     public Footprint (Geometry shape){
         this.geometry = shape;
         id = nextId;
+        population = 653;
+        populationDensity = 0.003658769001167474;
         nextId++;
+    }
+
+    public void addBuilding(Building buildingP){
+        this.building = buildingP;
     }
 
     public Hashtable<Coordinate[], Road> getRoadsideEdges(){
@@ -26,9 +39,5 @@ public class Footprint {
             roadsideEdges.put(new Coordinate[]{ coordinates[keys], coordinates[keys+1]}, roadsideIndex.get(keys));
         }
         return roadsideEdges;
-    }
-
-    public void addBuilding(Building buildingP){
-        this.building = buildingP;
     }
 }

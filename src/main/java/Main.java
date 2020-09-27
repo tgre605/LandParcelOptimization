@@ -25,9 +25,28 @@ public class Main extends Application {
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
+        BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcels: LandParcels) {
             parcels.surroundingParcels(reader);
+            parcels = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30, 6);
+            SceneRenderer.render(parcels.getFootprintGeometries());
+            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+            placer.setRoadCentre(parcels);
+            placer.surroundingFootprints(parcels);
+            placer.placeBuildings(parcels, reader);
+
+            for (Footprint footprint: parcels.footprints) {
+                if(footprint.id == 157 || footprint.id == 165){
+                    placer.createDriveway(footprint);
+                }
+
+                if(footprint.building != null){
+                    SceneRenderer.render(footprint.building.polygon);
+                }
+
+            }
+            for(int i = 0; i < parcels.subroads.size(); i++){
             parcels = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,0, 5);
             //SceneRenderer.render(parcels.getFootprintGeometries());
 /*            for(int i = 0; i < parcels.subroads.size(); i++){

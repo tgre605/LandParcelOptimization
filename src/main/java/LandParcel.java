@@ -76,7 +76,6 @@ public class LandParcel {
                 }
             }
         }
-
     }
 
     public double getPopulation() {

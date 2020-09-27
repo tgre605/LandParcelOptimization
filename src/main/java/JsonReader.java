@@ -8,9 +8,14 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
@@ -26,6 +31,9 @@ public class JsonReader {
     ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
     ArrayList<LandParcel> parcels = new ArrayList<>();
     ArrayList<LandParcel>[][] world = new ArrayList[gridWidth][gridHeight];
+    ArrayList<Polygon> RBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> CBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
 
 
     public JsonReader(String file) throws IOException {
@@ -114,5 +122,37 @@ public class JsonReader {
         xyPoints[0] = gridXD;
         xyPoints[1] = gridYD;
         return xyPoints;
+    }
+    
+    public void getBuildingFootprints(String file){
+        JSONParser jsonParser = new JSONParser();
+        try (FileReader reader = new FileReader(file)){
+            Object obj = jsonParser.parse(reader);
+
+            JSONObject Obj = (JSONObject) obj;
+            JSONArray residentialFootprints = (JSONArray) Obj.get("residential");
+            residentialFootprints.forEach(print -> parseBuildings((JSONObject) print, 0));
+            
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void parseBuildings (JSONObject buildingFootprint, int type){
+        JSONArray polygon = (JSONArray) buildingFootprint.get("polygon");
+        polygon.forEach(line -> parseVertices((JSONObject) line));
+        // JTS requires list coordinates to have start and end coordinates to be the same
+        this.temp.add(temp.get(0));
+        Polygon buildingPolygon = new GeometryFactory().createPolygon(temp.toArray(new Coordinate[0]));
+        temp.clear();
+        switch (type){
+            case 0: RBuildingFootprints.add(buildingPolygon);
+                    break;
+            case 1: CBuildingFootprints.add(buildingPolygon);
+                    break;
+            case 2: IBuildingFootprints.add(buildingPolygon);
+                    break;
+        }
     }
 }

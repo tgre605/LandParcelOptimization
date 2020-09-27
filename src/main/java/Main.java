@@ -31,9 +31,11 @@ public class Main extends Application {
             parcels.surroundingParcels(reader);
             parcels = landParcelOptimizer.BoundingBoxOptimization(parcels, 5, 0.25, 0.9,30, 6);
             SceneRenderer.render(parcels.getFootprintGeometries());
+            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcels);
             placer.surroundingFootprints(parcels);
-            placer.placeBuildings(parcels);
+            placer.placeBuildings(parcels, reader);
+            
             for (Footprint footprint: parcels.footprints) {
                 if(footprint.id == 157 || footprint.id == 165){
                     placer.createDriveway(footprint);

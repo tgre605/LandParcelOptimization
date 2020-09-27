@@ -1,24 +1,24 @@
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.AffineTransformation;
 
 import java.util.ArrayList;
 
 public class BuildingPlacer {
-    public void placeBuildings(LandParcel landParcel){
+    ArrayList<Polygon> RBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> CBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
 
+    public void placeBuildings(LandParcel landParcel, JsonReader reader){
+        RBuildingFootprints = reader.RBuildingFootprints;
+        CBuildingFootprints = reader.CBuildingFootprints;
+        IBuildingFootprints = reader.IBuildingFootprints;
         for (Footprint footprint: landParcel.footprints) {
             if(footprint.roadsideEdges.size()>0){
-                footprint.addBuilding(new Building(footprint));
+                footprint.addBuilding(new Building(footprint, RBuildingFootprints.get(2)));
             }
         }
     }
-
-    public void placeBuildingsT(Footprint footprint){
-        footprint.addBuilding(new Building(footprint));
-    }
+    
     public void setRoadCentre(LandParcel landParcel){
         for(Footprint footprint: landParcel.footprints){
             if(footprint.roadsideEdges.size() > 0){

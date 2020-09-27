@@ -130,6 +130,12 @@ public class LandParcelOptimizer {
             largeFootprints.remove(0);
         }
 
+        //Assign Land Parcel Roads
+        Coordinate[] parcelCoordinates = inputParcel.polygon.getCoordinates();
+        for(int i = 0; i < inputParcel.polygon.getCoordinates().length-1; i++){
+            inputParcel.subroads.add(new Road(parcelCoordinates[i], parcelCoordinates[i+1], Road.RoadType.mainRoad));
+        }
+
         //Generate Footprints
         for(int i =0; i < smallFootprints.size(); i++){
             Footprint footprint = new Footprint(smallFootprints.get(i));
@@ -139,12 +145,6 @@ public class LandParcelOptimizer {
             footprint.geometry.setUserData(i);
             footprint.landParcel = inputParcel;
             smallFootprints.get(i).setUserData(footprint.id);
-        }
-
-        //Assign Land Parcel Roads
-        Coordinate[] parcelCoordinates = inputParcel.polygon.getCoordinates();
-        for(int i = 0; i < inputParcel.polygon.getCoordinates().length-1; i++){
-            inputParcel.subroads.add(new Road(parcelCoordinates[i], parcelCoordinates[i+1], Road.RoadType.mainRoad));
         }
         Mesh mesh = new Mesh(inputParcel.footprints);
         inputParcel = mesh.mergeRoads(inputParcel);

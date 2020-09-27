@@ -71,7 +71,7 @@ public class Mesh {
         for(int i =0; i < landParcel.footprints.size(); i++){
             landParcel.footprints.get(i).geometry = generatePolygon(i);
             //SceneRenderer.render(landParcel.footprints.get(i).geometry);
-            SceneRenderer.render(generatePolygon(i));
+            //SceneRenderer.render(generatePolygon(i));
         }
         for (int i= 0; i < landParcel.subroads.size(); i++){
             for (int j =0; j < landParcel.footprints.size(); j++){
@@ -83,7 +83,7 @@ public class Mesh {
         }
         for(int i = 0; i < landParcel.footprints.size(); i++){
             for (Coordinate[] road : landParcel.footprints.get(i).getRoadsideEdges().keySet()){
-                //SceneRenderer.renderLine(road);
+                SceneRenderer.renderLine(road);
             }
         }
         //if(geo != null)

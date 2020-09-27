@@ -13,7 +13,7 @@ public class BuildingPlacer {
         CBuildingFootprints = reader.CBuildingFootprints;
         IBuildingFootprints = reader.IBuildingFootprints;
         for (Footprint footprint: landParcel.footprints) {
-            if(footprint.roadsideEdges.size()>0){
+            if(footprint.getRoadsideEdges().size()>0){
                 footprint.addBuilding(new Building(footprint, RBuildingFootprints.get(2)));
             }
         }
@@ -21,14 +21,14 @@ public class BuildingPlacer {
     
     public void setRoadCentre(LandParcel landParcel){
         for(Footprint footprint: landParcel.footprints){
-            if(footprint.roadsideEdges.size() > 0){
+            if(footprint.getRoadsideEdges().size() > 0){
                 Coordinate[] roadSideEdges = null;
-                A: for (Road road: footprint.roadsideEdges.values()) {
+                A: for (Road road: footprint.getRoadsideEdges().values()) {
                     if(road.roadType == Road.RoadType.subRoad){
-                        roadSideEdges = footprint.roadsideEdges.keys().nextElement();
+                        roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
                         break A;
                     } else {
-                        roadSideEdges = footprint.roadsideEdges.keys().nextElement();
+                        roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
                     }
                 }
                 footprint.roadCentre = findRoadCentre(roadSideEdges);
@@ -37,7 +37,7 @@ public class BuildingPlacer {
     }
 
     public void setRoadCentreT(Footprint footprint){
-        Coordinate[] roadSideEdges = footprint.roadsideEdges.keys().nextElement();
+        Coordinate[] roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
         footprint.roadCentre = findRoadCentre(roadSideEdges);
     }
 
@@ -58,12 +58,12 @@ public class BuildingPlacer {
             Coordinate NPCoord1 = null;
             Coordinate NPCoord2 = null;
             Coordinate[] driveWayVertices = new Coordinate[2];
-            if (footprint.roadsideEdges.size() == 0) {
+            if (footprint.getRoadsideEdges().size() == 0) {
                 A:
                 for (int i = 0; i < footprint.neighbours.size(); i++) {
                     neighbour = footprint.neighbours.get(i);
                     for (Footprint neighbourTest : footprint.neighbours) {
-                        if (neighbourTest.roadsideEdges.size() == 0 && neighbourTest.id != footprint.id) {
+                        if (neighbourTest.getRoadsideEdges().size() == 0 && neighbourTest.id != footprint.id) {
                             for (Footprint neighbourTestN : neighbourTest.neighbours) {
                                 if (neighbour.geometry.intersects(neighbourTestN.geometry) || neighbour.geometry.touches(neighbourTestN.geometry)) {
                                     neighbourPair = true;
@@ -74,13 +74,13 @@ public class BuildingPlacer {
                             }
                         }
                     }
-                    if (neighbour.roadsideEdges.size() > 0) {
+                    if (neighbour.getRoadsideEdges().size() > 0) {
                         neighbourWithEdge = neighbour;
                         break A;
                     } else {
-                        for (int j = 0; j < neighbour.roadsideEdges.size(); j++) {
+                        for (int j = 0; j < neighbour.getRoadsideEdges().size(); j++) {
                             int largestEdge = 0;
-                            int tempWidth = neighbour.roadsideEdges.keys().nextElement().length;
+                            int tempWidth = neighbour.getRoadsideEdges().keys().nextElement().length;
                             if (tempWidth > largestEdge) {
                                 largestEdge = tempWidth;
                                 neighbourWithEdge = neighbour;
@@ -107,8 +107,8 @@ public class BuildingPlacer {
                 }
                 Coordinate closestVertexN = null;
                 Coordinate closestVertex = null;
-                if (neighbourWithEdge.roadsideEdges.size() > 0) {
-                    for (Coordinate roadSideEdgeVertex : neighbourWithEdge.roadsideEdges.keys().nextElement()) {
+                if (neighbourWithEdge.getRoadsideEdges().size() > 0) {
+                    for (Coordinate roadSideEdgeVertex : neighbourWithEdge.getRoadsideEdges().keys().nextElement()) {
                         double closestPoints = 99999;
                         for (Coordinate footprintVertex : footprint.geometry.getCoordinates()) {
                             if (roadSideEdgeVertex.distance(footprintVertex) < closestPoints) {

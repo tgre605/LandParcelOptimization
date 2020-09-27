@@ -29,13 +29,10 @@ public class Mesh {
                     SceneRenderer.render(footprints.get(i).geometry);
                     SceneRenderer.render(coords[j]);
                     geo = footprints.get(i).geometry;
-                    System.out.println(coords[j]);
-                    System.out.println(key);
                 }
                 if(i == 199 && j == 2){
                     SceneRenderer.render(coords[j]);
                     SceneRenderer.render(footprints.get(i).geometry);
-                    System.out.println(key);
                 }
                 coordinates.put(key , coords[j]);
             }
@@ -97,16 +94,10 @@ public class Mesh {
     Road[] mergeRoadIntersection(Road roadA, Road roadB, Coordinate roadAcoord, Coordinate roadBcoord){
         Coordinate midPoint = getMidPoint(roadAcoord, roadBcoord);
         if(coordinates.containsKey(generateIndex(roadAcoord))) {
-            if(generateIndex(roadAcoord).compareTo("424.892000103.754700") == 0 || generateIndex(roadAcoord).compareTo("424.889100103.768800") == 0){
-                System.out.println("");
-            }
             coordinates.put(generateIndex(roadAcoord), midPoint);
             //SceneRenderer.render(midPoint);
         }
         if(coordinates.containsKey(generateIndex(roadBcoord))) {
-            if(generateIndex(roadBcoord).compareTo("424.892000103.754700") == 0 || generateIndex(roadBcoord).compareTo("424.889100103.768800") == 0){
-                System.out.println("");
-            }
             coordinates.put(generateIndex(roadBcoord), midPoint);
             //SceneRenderer.render(midPoint);
         }
@@ -154,9 +145,6 @@ public class Mesh {
     }
 
     public Polygon generatePolygon(int id){
-        if(id == 213){
-            System.out.println("aasdf");
-        }
         Coordinate[] coordinates = new Coordinate[footprintIndices.get(id).length];
         String[] indices = footprintIndices.get(id);
         for (int i = 0; i < coordinates.length; i++) {

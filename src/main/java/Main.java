@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -29,11 +30,11 @@ public class Main extends Application {
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcel : LandParcels) {
             parcel.surroundingParcels(reader);
-            ParcelMesh parcelMesh = new ParcelMesh(parcel);
-            parcelMesh.test();
-            parcelMesh.drawMesh();
-            //parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
-            //SceneRenderer.render(parcel.getFootprintGeometries());
+            //ParcelMesh parcelMesh = new ParcelMesh(parcel);
+            //parcelMesh.test();
+            //parcelMesh.drawMesh();
+            parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
+            SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Red);
             /*
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);

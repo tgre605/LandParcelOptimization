@@ -1,3 +1,4 @@
+import javafx.scene.paint.Color;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -26,13 +27,13 @@ public class Mesh {
                 String key = generateIndex(coords[j]);
                 keys.add(key);
                 if(i == 213 && j == 4){
-                    SceneRenderer.render(footprints.get(i).geometry);
+                    SceneRenderer.render(footprints.get(i).geometry, Color.GREEN);
                     SceneRenderer.render(coords[j]);
                     geo = footprints.get(i).geometry;
                 }
                 if(i == 199 && j == 2){
                     SceneRenderer.render(coords[j]);
-                    SceneRenderer.render(footprints.get(i).geometry);
+                    SceneRenderer.render(footprints.get(i).geometry, Color.GREEN);
                 }
                 coordinates.put(key , coords[j]);
             }
@@ -83,7 +84,7 @@ public class Mesh {
         }
         for(int i = 0; i < landParcel.footprints.size(); i++){
             for (Coordinate[] road : landParcel.footprints.get(i).getRoadsideEdges().keySet()){
-                SceneRenderer.renderLine(road);
+                //SceneRenderer.renderLine(road);
             }
         }
         //if(geo != null)

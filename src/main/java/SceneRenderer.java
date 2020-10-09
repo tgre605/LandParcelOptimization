@@ -27,20 +27,27 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.List;
 
+
 public class SceneRenderer {
     private static double scale = 10.76422503423912;
 
     private static DragContext sceneDragContext = new DragContext();
     private static Vector2D mousePosition = new Vector2D();
 
+    private static Hashtable<Geometry, Color> geometryColor = new Hashtable<>();
+    private static Hashtable<Geometry, Color> coordinateColor = new Hashtable<>();
+    private static Hashtable<Geometry, Color> lineColor = new Hashtable<>();
+
+    private static Hashtable<Geometry, ColorSpectrum> geometryColorSpectrum = new Hashtable<>();
+
     private static ArrayList<LandParcel> LandParcels = new ArrayList<>();
-    private static ArrayList<Geometry> geometries = new ArrayList<>();
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
     private static ArrayList<Geometry> outlineGeometries = new ArrayList<>();
     private static ArrayList<Coordinate> lines = new ArrayList<>();
 
     private static Text text = new Text();
 
+    public enum ColorSpectrum {Green, Blue, Red}
 
     public static Polygon ConvertPolygon(Geometry geometry){
         List<Double> points = new ArrayList<Double>();
@@ -53,16 +60,34 @@ public class SceneRenderer {
         return output;
     }
 
-    public static void render(Geometry geometry){
-        render(new Geometry[] {geometry});
+    public static void render(Geometry[] geometry, Color color){
+        for(int i=0; i < geometry.length; i++)
+            geometryColor.put(geometry[i], color);
     }
-    public static void render(Geometry[] geometries){
-        SceneRenderer.geometries.addAll(Arrays.asList(geometries));
+
+    public static void render(Geometry geometry, Color color){
+        geometryColor.put(geometry, color);
+    }
+
+    public static void render(Geometry geometry, ColorSpectrum color){
+        geometryColorSpectrum.put(geometry, color);
+    }
+
+    public static void render(Geometry[] geometry, ColorSpectrum color){
+        for(int i=0; i < geometry.length; i++)
+            geometryColorSpectrum.put(geometry[i], color);
     }
 
     public static void renderOutline(Geometry[] geometries){
         SceneRenderer.outlineGeometries.addAll(Arrays.asList(geometries));
     }
+
+//    public static void render(Geometry geometry){
+//        render(new Geometry[] {geometry});
+//    }
+//    public static void render(Geometry[] geometries){
+//        SceneRenderer.geometries.addAll(Arrays.asList(geometries));
+//    }
 
     public static void render(LandParcel landParcel){
         render(new LandParcel[] {landParcel});
@@ -154,14 +179,37 @@ public class SceneRenderer {
             root.getChildren().add(polygon);
         }
 
-        for(int i= 0; i < geometries.size(); i++){
-            Polygon polygon = ConvertPolygon(geometries.get(i));
-            polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) i/geometries.size()));
+        for (Geometry geometry: geometryColor.keySet()) {
+            Polygon polygon = ConvertPolygon(geometry);
+            polygon.setFill(geometryColor.get(geometry));
             polygon.setStroke(Color.GRAY);
             polygon.setStrokeWidth(0.01f);
             polygon.setOnMouseEntered(mouseOver);
-            polygon.setUserData(geometries.get(i));
+            polygon.setUserData(geometry);
             root.getChildren().add(polygon);
+        }
+
+        int j = 0;
+        for (Geometry geometry: geometryColorSpectrum.keySet()) {
+            Polygon polygon = ConvertPolygon(geometry);
+            switch (geometryColorSpectrum.get(geometry)){
+                case Red:
+                    polygon.setFill(Color.RED.interpolate(Color.DARKRED, (double) j/geometryColorSpectrum.size()));
+                    break;
+                case Blue:
+                    polygon.setFill(Color.DEEPSKYBLUE.interpolate(Color.DODGERBLUE, (double) j/geometryColorSpectrum.size()));
+                    break;
+                case Green:
+                    polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) j/geometryColorSpectrum.size()));
+                    break;
+            }
+
+            polygon.setStroke(Color.GRAY);
+            polygon.setStrokeWidth(0.01f);
+            polygon.setOnMouseEntered(mouseOver);
+            polygon.setUserData(geometry);
+            root.getChildren().add(polygon);
+            j++;
         }
 
         for(int i= 0; i < outlineGeometries.size(); i++){

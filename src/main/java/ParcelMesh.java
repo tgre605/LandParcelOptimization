@@ -1,3 +1,4 @@
+import javafx.scene.paint.Color;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -179,8 +180,8 @@ public class ParcelMesh {
         //for (Integer[] coordIndex: edges.values()) {
         //    SceneRenderer.renderLine(new Coordinate[]{coordinates.get(coordIndex[0]), coordinates.get(coordIndex[1])});
         //}
-        SceneRenderer.render(getFootprintGeometry(1));
-        SceneRenderer.render(getFootprintGeometry(2));
+        SceneRenderer.render(getFootprintGeometry(1), Color.GREEN);
+        SceneRenderer.render(getFootprintGeometry(2), Color.GREEN);
     }
 
     private void addEdge(int coordinateA, int coordinateB){

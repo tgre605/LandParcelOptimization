@@ -78,15 +78,12 @@ public class LandParcelOptimizer {
                 continue;
             }
 
-
             double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
             double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
 
             if(isTriangle(finalFootprintA, triangleTolerance)  && finalFootprintA.getArea() < triangleMinArea){
-                System.out.println("TRIANGLE");
                 smallFootprints.add(finalFootprintA);
             } else if(footprintAEdge > minStreetWidth){
-                System.out.println("EDGE");
                 smallFootprints.add(finalFootprintA);
             } else if(finalFootprintA.getArea() < minArea) {
                 smallFootprints.add(finalFootprintA);

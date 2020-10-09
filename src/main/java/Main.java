@@ -28,10 +28,13 @@ public class Main extends Application {
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcel : LandParcels) {
-            System.out.println("testStart");
             parcel.surroundingParcels(reader);
-            parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
-            SceneRenderer.render(parcel.getFootprintGeometries());
+            ParcelMesh parcelMesh = new ParcelMesh(parcel);
+            parcelMesh.test();
+            parcelMesh.drawMesh();
+            //parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
+            //SceneRenderer.render(parcel.getFootprintGeometries());
+            /*
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);
             placer.surroundingFootprints(parcel);
@@ -47,10 +50,10 @@ public class Main extends Application {
                 }
 
             }
-
-            System.out.println("test");
-            sceneRenderer.start(stage);
+            */
         }
+        System.out.println("test");
+        sceneRenderer.start(stage);
     }
 
     public static void main(String[] args) {

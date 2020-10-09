@@ -17,8 +17,6 @@ public class LandParcelOptimizer {
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
 
-
-
         while (largeFootprints.size() != 0){
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
             Geometry boundingBox = minimumDiameter.getMinimumRectangle();
@@ -247,7 +245,7 @@ public class LandParcelOptimizer {
                     coordinates.set(coordinates.indexOf(road[1]), generatedSnappedCoord(road[0]));
                 } else {
                     System.out.println(road[1]);
-                }
+                }v
             }
         }
         */

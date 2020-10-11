@@ -26,8 +26,8 @@ public class Mesh {
                 String key = generateIndex(coords[j]);
                 keys.add(key);
                 if(i == 213 && j == 4){
-                    SceneRenderer.render(footprints.get(i).geometry);
-                    SceneRenderer.render(coords[j]);
+//                    SceneRenderer.render(footprints.get(i).geometry);
+//                    SceneRenderer.render(coords[j]);
                     geo = footprints.get(i).geometry;
                 }
                 if(i == 199 && j == 2){

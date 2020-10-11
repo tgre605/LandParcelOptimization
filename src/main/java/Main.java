@@ -47,8 +47,7 @@ public class Main extends Application {
                 }
 
             }
-
-            System.out.println("test");
+            System.out.println("testStart");
             sceneRenderer.start(stage);
         }
     }

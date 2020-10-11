@@ -31,7 +31,7 @@ public class JsonReader {
     ArrayList<Coordinate> temp = new ArrayList<Coordinate>();
     ArrayList<LandParcel> parcels = new ArrayList<>();
     ArrayList<LandParcel>[][] world = new ArrayList[gridWidth][gridHeight];
-    ArrayList<Polygon> RBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> RBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> CBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
 
@@ -132,6 +132,10 @@ public class JsonReader {
             JSONObject Obj = (JSONObject) obj;
             JSONArray residentialFootprints = (JSONArray) Obj.get("residential");
             residentialFootprints.forEach(print -> parseBuildings((JSONObject) print, 0));
+            JSONArray commercialFootprints = (JSONArray) Obj.get("commercial");
+            commercialFootprints.forEach(print -> parseBuildings((JSONObject) print, 1));
+            JSONArray industrialFootprints = (JSONArray) Obj.get("industrial");
+            industrialFootprints.forEach(print -> parseBuildings((JSONObject) print, 2));
             
         } catch (ParseException e) {
             e.printStackTrace();

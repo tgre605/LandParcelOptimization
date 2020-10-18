@@ -47,7 +47,7 @@ public class SceneRenderer {
 
     private static Text text = new Text();
 
-    public enum ColorSpectrum {Green, Blue, Red}
+    public enum ColorSpectrum {Green, Blue, Red, Yellow}
 
     public static Polygon ConvertPolygon(Geometry geometry){
         List<Double> points = new ArrayList<Double>();
@@ -201,6 +201,9 @@ public class SceneRenderer {
                     break;
                 case Green:
                     polygon.setFill(Color.LIGHTGREEN.interpolate(Color.DARKGREEN, (double) j/geometryColorSpectrum.size()));
+                    break;
+                case Yellow:
+                    polygon.setFill(Color.LIGHTYELLOW.interpolate(Color.YELLOW, (double) j/geometryColorSpectrum.size()));
                     break;
             }
 

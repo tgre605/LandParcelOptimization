@@ -33,8 +33,23 @@ public class Main extends Application {
             //ParcelMesh parcelMesh = new ParcelMesh(parcel);
             //parcelMesh.test();
             //parcelMesh.drawMesh();
-            parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
-            SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Red);
+            Mesh mesh = new Mesh(parcel);
+            new BoundingBoxOptimizer().BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
+            //parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
+            switch (parcel.landType){
+                case industry:
+                    SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Yellow);
+                    break;
+                case commercial:
+                    SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Blue);
+                    break;
+                case residential:
+                    SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Green);
+                    break;
+                case undefined:
+                    SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Red);
+                    break;
+            }
             /*
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);

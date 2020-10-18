@@ -16,7 +16,7 @@ public class LandParcel {
     public int id;
 
     private ArrayList<Coordinate> vertices = new ArrayList<>();
-    private type landType;
+    public type landType;
     private double population;
     private double populationDensity;
     private static int nextId = 0;

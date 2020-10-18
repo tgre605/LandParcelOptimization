@@ -12,10 +12,12 @@ public class LandParcelOptimizer {
 
     public double triangleTolerance = 0.25;
 
-    public LandParcel BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
+    public LandParcel BoundingBoxOptimizationMESH(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
         largeFootprints.add(inputParcel.polygon);
+
+        ParcelMesh mesh = new ParcelMesh(inputParcel);
 
         while (largeFootprints.size() != 0){
             MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
@@ -135,14 +137,178 @@ public class LandParcelOptimizer {
         for(int i =0; i < smallFootprints.size(); i++){
             Footprint footprint = new Footprint(smallFootprints.get(i));
             footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
-            footprint.geometry = snapRoads(footprint, inputParcel);
+            //footprint.geometry = snapRoads(footprint, inputParcel);
             inputParcel.footprints.add(footprint);
             footprint.geometry.setUserData(i);
             footprint.landParcel = inputParcel;
             smallFootprints.get(i).setUserData(footprint.id);
         }
-        Mesh mesh = new Mesh(inputParcel.footprints);
-        inputParcel = mesh.mergeRoads(inputParcel);
+
+        return inputParcel;
+    }
+
+    private Coordinate[] getMidLine(Geometry boundingBox, boolean switchEdge){
+        Coordinate[] coordinates = boundingBox.getCoordinates();
+
+        double dist13 = coordinates[0].distance(coordinates[3]);
+        double dist12 = coordinates[0].distance(coordinates[1]);
+
+
+        if (dist12 < dist13 && !switchEdge){
+            double mid1x = (coordinates[0].x + coordinates[3].x)/2;
+            double mid1y = (coordinates[0].y + coordinates[3].y)/2;
+            double mid2x = (coordinates[1].x + coordinates[2].x)/2;
+            double mid2y = (coordinates[1].y + coordinates[2].y)/2;
+            Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
+            Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
+            return new Coordinate[] { midpoint1, midpoint2};
+
+        } else{
+            double mid1x = (coordinates[0].x + coordinates[1].x)/2;
+            double mid1y = (coordinates[0].y + coordinates[1].y)/2;
+            double mid2x = (coordinates[2].x + coordinates[3].x)/2;
+            double mid2y = (coordinates[2].y + coordinates[3].y)/2;
+            Coordinate midpoint1 = new Coordinate(mid1x, mid1y);
+            Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
+            return new Coordinate[] { midpoint1, midpoint2};
+        }
+    }
+
+    public LandParcel BoundingBoxOptimization(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
+        ArrayList<Geometry> largeFootprints = new ArrayList<>();
+        ArrayList<Geometry> smallFootprints = new ArrayList<>();
+        largeFootprints.add(inputParcel.polygon);
+
+        while (largeFootprints.size() != 0){
+            MinimumDiameter minimumDiameter = new MinimumDiameter(largeFootprints.get(0));
+            Geometry boundingBox = minimumDiameter.getMinimumRectangle();
+
+            //Normal Split
+            Geometry[] boundingBoxes = halfRectangle(boundingBox, false);
+            if(isTriangle(largeFootprints.get(0), triangleTolerance * 5)){
+                boundingBoxes = getBoundingBoxForTriangles(boundingBox, false);
+            }
+            Geometry footprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+            Geometry footprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+            boolean hasTriangle  = true,hasRoadAccess = true;
+            if(footprintA != null && footprintB != null) {
+                hasTriangle = isTriangle(footprintA, triangleTolerance) || isTriangle(footprintB, triangleTolerance);
+                hasRoadAccess = !hasRoadAccess(inputParcel.polygon, footprintA) || !hasRoadAccess(inputParcel.polygon, footprintB);
+            }
+
+            LineString cuttingEdge = getCommonEdge(boundingBoxes[0], boundingBoxes[1]);
+
+            //Rotated Split
+            boundingBoxes = halfRectangle(boundingBox, true);
+            if(isTriangle(largeFootprints.get(0), triangleTolerance * 5)){
+                boundingBoxes = getBoundingBoxForTriangles(boundingBox, true);
+            }
+            Geometry newFootprintA = splitPolygon(boundingBoxes[0], largeFootprints.get(0));
+            Geometry newFootprintB = splitPolygon(boundingBoxes[1], largeFootprints.get(0));
+
+            boolean newHasTriangle  = true,newHasRoadAccess  = true;
+            if(newFootprintA != null && newFootprintB != null) {
+                newHasTriangle = isTriangle(newFootprintA, triangleTolerance) || isTriangle(newFootprintB, triangleTolerance);
+                newHasRoadAccess =!hasRoadAccess(inputParcel.polygon, newFootprintA) || !hasRoadAccess(inputParcel.polygon, newFootprintB);
+            }
+
+            LineString newCuttingEdge = getCommonEdge(boundingBoxes[0], boundingBoxes[1]);
+
+            //Assessment
+            Geometry finalFootprintA = footprintA;
+            Geometry finalFootprintB = footprintB;
+
+            boolean rotatedSplit = false;
+
+            if(hasTriangle && !newHasTriangle){
+                finalFootprintA = newFootprintA;
+                finalFootprintB = newFootprintB;
+                rotatedSplit = true;
+            } else if(!hasTriangle && newHasTriangle){
+                finalFootprintA = footprintA;
+                finalFootprintB = footprintB;
+            }  else if(!hasRoadAccess && newHasRoadAccess && new Random(getSeedFromPosition(largeFootprints.get(0).getCentroid())).nextDouble() > streetAccessLevel){
+                finalFootprintA = newFootprintA;
+                finalFootprintB = newFootprintB;
+                rotatedSplit = true;
+            }
+
+            if(finalFootprintA == null || finalFootprintB == null){
+                smallFootprints.add(largeFootprints.get(0));
+                largeFootprints.remove(0);
+                continue;
+            }
+
+            double footprintAEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintA);
+            double footprintBEdge = getLongestRoadEdge(inputParcel.polygon, finalFootprintB);
+
+            if(isTriangle(finalFootprintA, triangleTolerance)  && finalFootprintA.getArea() < triangleMinArea){
+                smallFootprints.add(finalFootprintA);
+            } else if(footprintAEdge > minStreetWidth){
+                smallFootprints.add(finalFootprintA);
+            } else if(finalFootprintA.getArea() < minArea) {
+                smallFootprints.add(finalFootprintA);
+            }
+            else {
+                largeFootprints.add(finalFootprintA);
+            }
+
+
+
+            if(isTriangle(finalFootprintB, triangleTolerance) && finalFootprintB.getArea() < triangleMinArea){
+                smallFootprints.add(finalFootprintB);
+            } else if(footprintBEdge > minStreetWidth){
+                System.out.println("EDGE");
+                smallFootprints.add(finalFootprintB);
+            } else if(finalFootprintB.getArea() < minArea) {
+                smallFootprints.add(finalFootprintB);
+            }
+            else {
+                largeFootprints.add(finalFootprintB);
+            }
+
+            //Add road
+            if(rotatedSplit)
+                cuttingEdge = newCuttingEdge;
+
+            try {
+                Geometry intersections = largeFootprints.get(0).intersection(cuttingEdge);
+                if (intersections.getCoordinates().length == 2) {
+                    if (intersections.getCoordinates()[0].distance(intersections.getCoordinates()[1]) > roadLength) {
+                        inputParcel.subroads.add(new Road(intersections.getCoordinates()[0], intersections.getCoordinates()[1], Road.RoadType.subRoad));
+                    }
+                }
+                if (intersections.getCoordinates().length == 1) {
+                    if (cuttingEdge.getCoordinates()[0].distance(cuttingEdge.getCoordinates()[1]) > roadLength) {
+                        SceneRenderer.render(intersections.getCoordinates());
+                    }
+                }
+            } catch (TopologyException e){
+
+            }
+
+            largeFootprints.remove(0);
+        }
+
+        //Assign Land Parcel Roads
+        Coordinate[] parcelCoordinates = inputParcel.polygon.getCoordinates();
+        for(int i = 0; i < inputParcel.polygon.getCoordinates().length-1; i++){
+            inputParcel.subroads.add(new Road(parcelCoordinates[i], parcelCoordinates[i+1], Road.RoadType.mainRoad));
+        }
+
+        //Generate Footprints
+        for(int i =0; i < smallFootprints.size(); i++){
+            Footprint footprint = new Footprint(smallFootprints.get(i));
+            footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
+            //footprint.geometry = snapRoads(footprint, inputParcel);
+            inputParcel.footprints.add(footprint);
+            footprint.geometry.setUserData(i);
+            footprint.landParcel = inputParcel;
+            smallFootprints.get(i).setUserData(footprint.id);
+        }
+        //Mesh mesh = new Mesh(inputParcel.footprints);
+        //inputParcel = mesh.mergeRoads(inputParcel);
 
         return inputParcel;
     }

@@ -17,6 +17,7 @@ public class Footprint {
     Building building;
     LineString driveway;
     Coordinate roadCentre;
+    public Road usableRoad;
     public double population;
     public double populationDensity;
 

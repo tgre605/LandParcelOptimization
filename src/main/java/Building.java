@@ -7,6 +7,8 @@ import org.locationtech.jts.geom.util.AffineTransformation;
 
 import java.util.ArrayList;
 
+import static java.lang.Math.abs;
+
 public class Building {
     public enum type{residential, commercial, industry, undefined}
     public Polygon polygon = new Polygon(null, null, new GeometryFactory());
@@ -37,7 +39,11 @@ public class Building {
                 buildingFootprint = buildingFootprints.get(1);
                 break;
             case residential:
-                buildingFootprint = buildingFootprints.get(2);
+                if(abs(footprint.usableRoad.start.x - footprint.usableRoad.end.x)>abs(footprint.usableRoad.start.y - footprint.usableRoad.end.y)){
+                    buildingFootprint = buildingFootprints.get(2);
+                } else {
+                    buildingFootprint = buildingFootprints.get(1);
+                }
                 break;
             default:
                 break;
@@ -72,18 +78,11 @@ public class Building {
             atCentre.translate(xCentre, yCentre);
             centredGeom = atCentre.transform(centredGeom);
         }
-        
-        
+
         AffineTransformation atRotate = new AffineTransformation();
         
         Coordinate tip2 = new Coordinate(centredGeom.getCentroid().getCoordinate().getX(), centredGeom.getCentroid().getCoordinate().getY()-.5);
         double angle = -Angle.angleBetweenOriented(footprint.roadCentre, centredGeom.getCentroid().getCoordinate(), tip2);
-        if(footprint.id == 216){
-            //SceneRenderer.render(tip2);
-            //SceneRenderer.render(centredGeom.getCentroid().getCoordinate());
-            SceneRenderer.render(footprint.roadCentre);
-            //SceneRenderer.render(footprint.geometry.getCoordinates());
-        }
         atRotate.rotate(angle, centredGeom.getCentroid().getCoordinate().getX(), centredGeom.getCentroid().getCoordinate().getY());
         AffineTransformation atMove = null;
         xCentre = centredGeom.getCentroid().getX();
@@ -121,25 +120,25 @@ public class Building {
         atMove.translate(xVector, yVector);
         Geometry rotatedGeom = atRotate.transform(centredGeom);
         Geometry finalGeom = atMove.transform(rotatedGeom);
-        while (!footprint.geometry.contains(finalGeom)){
-            atMove = new AffineTransformation();
-            xCentre = finalGeom.getCentroid().getX();
-            yCentre = finalGeom.getCentroid().getY();
-            if(xCentre > footprint.roadCentre.x){
-                xVector = (footprint.roadCentre.x-xCentre) + scalingFactorTotal;
-            } else {
-                xVector = (footprint.roadCentre.x-xCentre) - scalingFactorTotal;
-            }
-            System.out.println(scalingFactorTotal);
-            System.out.println(xVector);
-            if(yCentre > footprint.roadCentre.y){
-                yVector = (footprint.roadCentre.y-yCentre) + scalingFactorTotal;
-            } else {
-                yVector = (footprint.roadCentre.y-yCentre) - scalingFactorTotal;
-            }
-            atMove.translate(xVector, yVector);
-            finalGeom = atMove.transform(finalGeom);
-        }
+//        while (!footprint.geometry.contains(finalGeom)){
+//            atMove = new AffineTransformation();
+//            xCentre = finalGeom.getCentroid().getX();
+//            yCentre = finalGeom.getCentroid().getY();
+//            if(xCentre > footprint.roadCentre.x){
+//                xVector = (footprint.roadCentre.x-xCentre) + scalingFactorTotal;
+//            } else {
+//                xVector = (footprint.roadCentre.x-xCentre) - scalingFactorTotal;
+//            }
+//            System.out.println(scalingFactorTotal);
+//            System.out.println(xVector);
+//            if(yCentre > footprint.roadCentre.y){
+//                yVector = (footprint.roadCentre.y-yCentre) + scalingFactorTotal;
+//            } else {
+//                yVector = (footprint.roadCentre.y-yCentre) - scalingFactorTotal;
+//            }
+//            atMove.translate(xVector, yVector);
+//            finalGeom = atMove.transform(finalGeom);
+//        }
         this.polygon = new GeometryFactory().createPolygon(finalGeom.getCoordinates());
         this.id = Building.nextId;
         this.population = footprint.population;

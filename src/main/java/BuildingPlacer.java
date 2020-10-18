@@ -40,9 +40,6 @@ public class BuildingPlacer {
                 Coordinate[] roadSideEdges = null;
                 Hashtable<Coordinate[], Road> edges =footprint.getRoadsideEdges();
                 A: for (Coordinate[] edge: edges.keySet()) {
-                    if(footprint.id == 216){
-                        System.out.println("t");
-                    }
                     if(edges.get(edge).roadType == Road.RoadType.subRoad){
                         if(edge[0].distance(edge[1]) >= longestEdge) {
                             longestEdge = edge[0].distance(edge[1]);
@@ -56,13 +53,9 @@ public class BuildingPlacer {
                     }
                 }
                 footprint.roadCentre = findRoadCentre(roadSideEdges);
+                footprint.usableRoad = edges.get(roadSideEdges);
             }
         }
-    }
-
-    public void setRoadCentreT(Footprint footprint){
-        Coordinate[] roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
-        footprint.roadCentre = findRoadCentre(roadSideEdges);
     }
 
     private Coordinate findRoadCentre(Coordinate[] roadSideEdges){

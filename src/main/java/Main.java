@@ -1,5 +1,4 @@
 import javafx.application.Application;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -29,6 +28,7 @@ public class Main extends Application {
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         for (LandParcel parcel : LandParcels) {
+            System.out.println("testStart");
             parcel.surroundingParcels(reader);
             //ParcelMesh parcelMesh = new ParcelMesh(parcel);
             //parcelMesh.test();
@@ -66,10 +66,10 @@ public class Main extends Application {
                 }
 
             }
-            */
+
+            System.out.println("test");
+            sceneRenderer.start(stage);
         }
-        System.out.println("test");
-        sceneRenderer.start(stage);
     }
 
     public static void main(String[] args) {

@@ -139,7 +139,7 @@ public class LandParcelOptimizer {
             footprint  = assignRoadSideEdges(inputParcel.subroads, footprint);
             //footprint.geometry = snapRoads(footprint, inputParcel);
             inputParcel.footprints.add(footprint);
-            footprint.geometry.setUserData(i);
+            footprint.geometry.setUserData(footprint.id);
             footprint.landParcel = inputParcel;
             smallFootprints.get(i).setUserData(footprint.id);
         }

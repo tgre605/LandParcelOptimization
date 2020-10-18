@@ -14,8 +14,6 @@ public class Mesh {
             this.position = position;
             id = nextVertexId;
             nextVertexId++;
-        }
-    }
 
     public class Edge {
         int id;

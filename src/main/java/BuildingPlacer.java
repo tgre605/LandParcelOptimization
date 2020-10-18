@@ -2,9 +2,11 @@ import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.AffineTransformation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
 
 public class BuildingPlacer {
-    ArrayList<Polygon> RBuildingFootprints = new ArrayList<>();
+    ArrayList<Geometry> RBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> CBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
 
@@ -14,7 +16,19 @@ public class BuildingPlacer {
         IBuildingFootprints = reader.IBuildingFootprints;
         for (Footprint footprint: landParcel.footprints) {
             if(footprint.getRoadsideEdges().size()>0){
-                footprint.addBuilding(new Building(footprint, RBuildingFootprints.get(2)));
+                switch (landParcel.landType){
+                    case industry:
+                        footprint.addBuilding(new Building(footprint, IBuildingFootprints, landParcel.landType));
+                        break;
+                    case commercial:
+                        footprint.addBuilding(new Building(footprint, CBuildingFootprints, landParcel.landType));
+                        break;
+                    case residential:
+                        footprint.addBuilding(new Building(footprint, RBuildingFootprints, landParcel.landType));
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -22,30 +36,38 @@ public class BuildingPlacer {
     public void setRoadCentre(LandParcel landParcel){
         for(Footprint footprint: landParcel.footprints){
             if(footprint.getRoadsideEdges().size() > 0){
+                double longestEdge = 0;
                 Coordinate[] roadSideEdges = null;
-                A: for (Road road: footprint.getRoadsideEdges().values()) {
-                    if(road.roadType == Road.RoadType.subRoad){
-                        roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
-                        break A;
+                Hashtable<Coordinate[], Road> edges =footprint.getRoadsideEdges();
+                A: for (Coordinate[] edge: edges.keySet()) {
+                    if(edges.get(edge).roadType == Road.RoadType.subRoad){
+                        if(edge[0].distance(edge[1]) >= longestEdge) {
+                            longestEdge = edge[0].distance(edge[1]);
+                            roadSideEdges = edge;
+                        }
                     } else {
-                        roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
+                        if(edge[0].distance(edge[1]) >= longestEdge) {
+                            longestEdge = edge[0].distance(edge[1]);
+                            roadSideEdges = edge;
+                        }
                     }
                 }
                 footprint.roadCentre = findRoadCentre(roadSideEdges);
+                footprint.usableRoad = edges.get(roadSideEdges);
             }
         }
     }
 
-    public void setRoadCentreT(Footprint footprint){
-        Coordinate[] roadSideEdges = footprint.getRoadsideEdges().keys().nextElement();
-        footprint.roadCentre = findRoadCentre(roadSideEdges);
-    }
-
     private Coordinate findRoadCentre(Coordinate[] roadSideEdges){
-        double xMid = (roadSideEdges[0].x+roadSideEdges[1].x)/2;
-        double yMid = (roadSideEdges[0].y+roadSideEdges[1].y)/2;
-        Coordinate response =  new Coordinate(xMid, yMid);
-        return response;
+        try{
+            double xMid = (roadSideEdges[0].x+roadSideEdges[1].x)/2;
+            double yMid = (roadSideEdges[0].y+roadSideEdges[1].y)/2;
+            Coordinate response =  new Coordinate(xMid, yMid);
+            return response;
+        } catch (NullPointerException e){
+            System.out.println(e);
+            return roadSideEdges[0];
+        }
     }
     
     public void createDriveway(Footprint footprint){

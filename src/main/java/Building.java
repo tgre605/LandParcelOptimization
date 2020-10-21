@@ -23,7 +23,8 @@ public class Building {
 
     public Building(Footprint footprint, ArrayList<Geometry> buildingFootprints, LandParcel.type landType) {
         double buildingFootprintScale = 0.3;
-        double buildingFootprintScaleAdjust = 0.9;
+        double buildingFootprintScaleAdjustSmaller = 0.9;
+        double buildingFootprintScaleAdjustBigger = 1.1;
         
         this.id = Building.nextId;
         this.population = footprint.population;
@@ -36,7 +37,7 @@ public class Building {
                 buildingFootprint = buildingFootprints.get(2);
                 break;
             case commercial:
-                buildingFootprint = buildingFootprints.get(1);
+                buildingFootprint = buildingFootprints.get(0);
                 break;
             case residential:
                 if(abs(footprint.usableRoad.start.x - footprint.usableRoad.end.x)>abs(footprint.usableRoad.start.y - footprint.usableRoad.end.y)){
@@ -58,91 +59,118 @@ public class Building {
         scalingFactorTotal = scalingFactorTotal*buildingFootprintScale;
         double areaCentredGeom = centredGeom.getArea();
         double areaFootprintGeom = footprint.geometry.getArea();
-        while ((areaCentredGeom/areaFootprintGeom) >= 0.4){
-            xCentre = footprint.geometry.getCentroid().getX() - centredGeom.getCentroid().getX()*buildingFootprintScaleAdjust;
-            yCentre = footprint.geometry.getCentroid().getY() - centredGeom.getCentroid().getY()*buildingFootprintScaleAdjust;
-            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjust;
+        while ((areaCentredGeom/areaFootprintGeom) >= 0.4 && landType == LandParcel.type.residential){
+            xCentre = footprint.geometry.getCentroid().getX() - centredGeom.getCentroid().getX()*buildingFootprintScaleAdjustSmaller;
+            yCentre = footprint.geometry.getCentroid().getY() - centredGeom.getCentroid().getY()*buildingFootprintScaleAdjustSmaller;
+            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
             atCentre = new AffineTransformation();
-            atCentre.scale(buildingFootprintScaleAdjust,buildingFootprintScaleAdjust);
+            atCentre.scale(buildingFootprintScaleAdjustSmaller,buildingFootprintScaleAdjustSmaller);
             atCentre.translate(xCentre, yCentre);
             centredGeom = atCentre.transform(centredGeom);
             areaCentredGeom = centredGeom.getArea();
         }
         
         while (!footprint.geometry.contains(centredGeom)){
-            xCentre = footprint.geometry.getCentroid().getX() - centredGeom.getCentroid().getX()*buildingFootprintScaleAdjust;
-            yCentre = footprint.geometry.getCentroid().getY() - centredGeom.getCentroid().getY()*buildingFootprintScaleAdjust;
-            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjust;
+            xCentre = footprint.geometry.getCentroid().getX() - centredGeom.getCentroid().getX()*buildingFootprintScaleAdjustSmaller;
+            yCentre = footprint.geometry.getCentroid().getY() - centredGeom.getCentroid().getY()*buildingFootprintScaleAdjustSmaller;
+            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
             atCentre = new AffineTransformation();
-            atCentre.scale(buildingFootprintScaleAdjust,buildingFootprintScaleAdjust);
+            atCentre.scale(buildingFootprintScaleAdjustSmaller,buildingFootprintScaleAdjustSmaller);
             atCentre.translate(xCentre, yCentre);
             centredGeom = atCentre.transform(centredGeom);
         }
-
         AffineTransformation atRotate = new AffineTransformation();
-        
         Coordinate tip2 = new Coordinate(centredGeom.getCentroid().getCoordinate().getX(), centredGeom.getCentroid().getCoordinate().getY()-.5);
         double angle = -Angle.angleBetweenOriented(footprint.roadCentre, centredGeom.getCentroid().getCoordinate(), tip2);
         atRotate.rotate(angle, centredGeom.getCentroid().getCoordinate().getX(), centredGeom.getCentroid().getCoordinate().getY());
+        Geometry rotatedGeom = atRotate.transform(centredGeom);
         AffineTransformation atMove = null;
         xCentre = centredGeom.getCentroid().getX();
         yCentre = centredGeom.getCentroid().getY();
+        AffineTransformation moveOp = new AffineTransformation();
         switch (landType){
             case industry:
                 atMove = new AffineTransformation();
                 xVector = (footprint.roadCentre.x - xCentre)*populationDensity*100;
                 yVector = (footprint.roadCentre.y - yCentre)*populationDensity*100;
+                atMove.translate(xVector, yVector);
                 break;
             case commercial:
                 atMove = new AffineTransformation();
-                xVector = (footprint.roadCentre.x - xCentre);
-                yVector = (footprint.roadCentre.y - yCentre);
+                xVector = (footprint.roadCentre.x-footprint.geometry.getCentroid().getX());
+                yVector = (footprint.roadCentre.y-footprint.geometry.getCentroid().getY());
+                a: for(int i = 0; i<15; i++){
+                    moveOp = new AffineTransformation();
+                    moveOp.translate((i*(xVector)*scalingFactorTotal * 0.05),(i*(yVector)*scalingFactorTotal) * 0.05);
+                    Geometry testGeom = moveOp.transform(rotatedGeom);
+                    if (testGeom.within(footprint.geometry)) {
+                        rotatedGeom = testGeom;
+                    } else {
+                        break a;
+                    }
+                }
+
+                b: for(int i = 0; i<15; i++){
+                    AffineTransformation atScale = new AffineTransformation();
+                    xCentre = footprint.geometry.getCentroid().getX() - centredGeom.getCentroid().getX()*buildingFootprintScaleAdjustBigger;
+                    yCentre = footprint.geometry.getCentroid().getY() - centredGeom.getCentroid().getY()*buildingFootprintScaleAdjustBigger;
+                    scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustBigger;
+                    atScale.scale(buildingFootprintScaleAdjustBigger,buildingFootprintScaleAdjustBigger);
+                    atScale.translate(xCentre, yCentre);
+                    Geometry testGeom = atScale.transform(rotatedGeom);
+                    if (testGeom.within(footprint.geometry)) {
+                        rotatedGeom = testGeom;
+                    } else {
+                        break b;
+                    }
+                }
                 break;
             case residential:
                 atMove = new AffineTransformation();
-                if(xCentre > footprint.roadCentre.x){
-                    xVector = (footprint.roadCentre.x-xCentre) + scalingFactorTotal*2;
-                } else {
-                    xVector = (footprint.roadCentre.x-xCentre) - scalingFactorTotal*2;
+                xVector = (footprint.roadCentre.x-footprint.geometry.getCentroid().getX());
+                yVector = (footprint.roadCentre.y-footprint.geometry.getCentroid().getY());
+                for(int i = 0; i<5; i++){
+                    moveOp = new AffineTransformation();
+                    moveOp.translate((i*(-xVector)*scalingFactorTotal * 0.05),(i*(-yVector)*scalingFactorTotal) * 0.05);
+                    Geometry testGeom = moveOp.transform(rotatedGeom);
+                    rotatedGeom = testGeom;
                 }
-
-                if(yCentre > footprint.roadCentre.y){
-                    yVector = (footprint.roadCentre.y-yCentre) + scalingFactorTotal*2;
-                } else {
-                    yVector = (footprint.roadCentre.y-yCentre) - scalingFactorTotal*2;
+                if (footprint.roadCentre.x > footprint.geometry.getCentroid().getX()){
+                    AffineTransformation atSunRotate = new AffineTransformation();
+                    atSunRotate.setToReflection(footprint.roadCentre.x, footprint.roadCentre.y, footprint.geometry.getCentroid().getX(), footprint.geometry.getCentroid().getY());
+                    rotatedGeom = atSunRotate.transform(rotatedGeom);
                 }
-                //xVector = (footprint.roadCentre.x-xCentre);
+                if(footprint.usableRoad != null){
+                    double xVectorSpaceOp = footprint.usableRoad.start.getX() - footprint.usableRoad.end.getX();
+                    double yVectorSpaceOp = footprint.usableRoad.start.getY() - footprint.usableRoad.end.getY();
+                    AffineTransformation spaceOp = new AffineTransformation();
+                    if(!rotatedGeom.within(footprint.geometry)){
+                        for(int i = 0; i<51; i++){
+                            xVectorSpaceOp = -xVectorSpaceOp;
+                            yVectorSpaceOp = -yVectorSpaceOp;
+                            spaceOp = new AffineTransformation();
+                            spaceOp.translate((i*(xVectorSpaceOp)*scalingFactorTotal * 0.05),(i*(yVectorSpaceOp)*scalingFactorTotal) * 0.05);
+                            Geometry testGeom = spaceOp.transform(rotatedGeom);
+                            if(testGeom.within(footprint.geometry)){
+                                rotatedGeom = testGeom;
+                            }
+                        }
+                    }
+                }
                 break;
             default:
                 break;
         }
         
-        atMove.translate(xVector, yVector);
-        Geometry rotatedGeom = atRotate.transform(centredGeom);
-        Geometry finalGeom = atMove.transform(rotatedGeom);
-//        while (!footprint.geometry.contains(finalGeom)){
-//            atMove = new AffineTransformation();
-//            xCentre = finalGeom.getCentroid().getX();
-//            yCentre = finalGeom.getCentroid().getY();
-//            if(xCentre > footprint.roadCentre.x){
-//                xVector = (footprint.roadCentre.x-xCentre) + scalingFactorTotal;
-//            } else {
-//                xVector = (footprint.roadCentre.x-xCentre) - scalingFactorTotal;
-//            }
-//            System.out.println(scalingFactorTotal);
-//            System.out.println(xVector);
-//            if(yCentre > footprint.roadCentre.y){
-//                yVector = (footprint.roadCentre.y-yCentre) + scalingFactorTotal;
-//            } else {
-//                yVector = (footprint.roadCentre.y-yCentre) - scalingFactorTotal;
-//            }
-//            atMove.translate(xVector, yVector);
-//            finalGeom = atMove.transform(finalGeom);
-//        }
+        Geometry finalGeom = null;
+        finalGeom = atMove.transform(rotatedGeom);
+        
         this.polygon = new GeometryFactory().createPolygon(finalGeom.getCoordinates());
         this.id = Building.nextId;
         this.population = footprint.population;
         this.populationDensity = footprint.populationDensity;
         Building.nextId++;
     }
+    
+    
 }

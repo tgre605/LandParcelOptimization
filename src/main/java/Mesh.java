@@ -10,18 +10,29 @@ public class Mesh {
     public static class Vertex {
         int id;
         public Coordinate position;
-        public Vertex(Coordinate position){
+
+        public Vertex(Coordinate position) {
             this.position = position;
             id = nextVertexId;
             nextVertexId++;
+        }
+    }
 
     public class Edge {
         int id;
         public Vertex vertexA;
         public Vertex vertexB;
+        public boolean roadsideEdge;
         public Edge(Vertex vertexA, Vertex vertexB){
             this.vertexA = vertexA;
             this.vertexB = vertexB;
+            id = nextEdgeId;
+            nextEdgeId++;
+        }
+        public Edge(Vertex vertexA, Vertex vertexB, boolean roadsideEdge){
+            this.vertexA = vertexA;
+            this.vertexB = vertexB;
+            this.roadsideEdge = roadsideEdge;
             id = nextEdgeId;
             nextEdgeId++;
         }
@@ -29,8 +40,8 @@ public class Mesh {
 
     public class Face {
         int id;
-        private ArrayList<Edge> edges = new ArrayList<>();
-        private ArrayList<Vertex> vertices= new ArrayList<>();
+        public ArrayList<Edge> edges = new ArrayList<>();
+        public ArrayList<Vertex> vertices= new ArrayList<>();
         public Face(){
             id = nextFaceId;
             nextFaceId++;
@@ -53,9 +64,9 @@ public class Mesh {
             face.vertices.add(vertex);
         }
         for (int i =0; i < face.vertices.size()-1; i++){
-            face.edges.add(new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size())));
+            face.edges.add(new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size()), true));
         }
-        face.edges.add(new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1)));
+        face.edges.add(new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1),true));
         footprint = face;
     }
 
@@ -64,24 +75,22 @@ public class Mesh {
     }
 
 
-    public Face[] splitEdge(Coordinate coordinateA, Coordinate coordinateB, Face face){
+    public Face[] splitEdge(Coordinate coordinateA, Coordinate coordinateB, Face face, double roadLength){
         LineString line = new GeometryFactory().createLineString(new Coordinate[]{coordinateA, coordinateB});
         Coordinate[] coordinates = faceToPolygon(face).intersection(line).getCoordinates();
         Vertex vertex1 = new Vertex(coordinates[0]);
         Vertex vertex2 = new Vertex(coordinates[1]);
-        SceneRenderer.render(coordinates[0]);
-        SceneRenderer.render(coordinates[1]);
         Edge splittingEdgeA = getEdgeOnVertex(vertex1, face.edges);
         Edge splittingEdgeB = getEdgeOnVertex(vertex2, face.edges);
         face = insertVertex(splittingEdgeA, vertex1, face);
         face = insertVertex(splittingEdgeB, vertex2, face);
 
         ArrayList<Vertex> clockwiseLoop = new ArrayList<>(face.vertices);
-        System.out.println(clockwiseLoop.remove(splittingEdgeA.vertexA));
+        clockwiseLoop.remove(splittingEdgeA.vertexA);
         clockwiseLoop = getEdgeLoop(vertex1, vertex2, clockwiseLoop, face.edges);
 
         ArrayList<Vertex> antiClockwiseLoop = new ArrayList<>(face.vertices);
-        System.out.println(antiClockwiseLoop.remove(splittingEdgeA.vertexB));
+        antiClockwiseLoop.remove(splittingEdgeA.vertexB);
         antiClockwiseLoop = getEdgeLoop(vertex1, vertex2, antiClockwiseLoop, face.edges);
 
         Face face1 = new Face(getEdgesFromVertices(clockwiseLoop, face.edges), clockwiseLoop);
@@ -89,12 +98,12 @@ public class Mesh {
 
         Edge newEdge = new Edge(vertex1, vertex2);
 
+        if(vertex1.position.distance(vertex2.position) > roadLength){
+            newEdge.roadsideEdge = true;
+        }
+
         face1.edges.add(newEdge);
         face2.edges.add(newEdge);
-
-        SceneRenderer.renderLine(new Coordinate[]{coordinateA, coordinateB});
-        SceneRenderer.render(faceToPolygon(face1), Color.GRAY);
-        SceneRenderer.render(faceToPolygon(face2), Color.GRAY);
 
         return new Face[]{face1, face2};
     }
@@ -156,13 +165,15 @@ public class Mesh {
         face.edges.remove(edge);
         Edge edge1 = new Edge(edge.vertexA, vertex);
         Edge edge2 = new Edge(edge.vertexB, vertex);
+        edge1.roadsideEdge = edge.roadsideEdge;
+        edge2.roadsideEdge = edge.roadsideEdge;
         face.edges.add(edge1);
         face.edges.add(edge2);
         face.vertices.add(vertex);
         return face;
     }
 
-    public Polygon faceToPolygon(Face face){
+    public static Polygon faceToPolygon(Face face){
         ArrayList<Vertex> vertices = new ArrayList<>();
         ArrayList<Edge> edgesToWalk = new ArrayList<>(face.edges);
         Vertex currentVertex = face.vertices.get(0);
@@ -178,7 +189,7 @@ public class Mesh {
         return new GeometryFactory().createPolygon(vertexToCoords(vertices));
     }
 
-    private Coordinate[] vertexToCoords(ArrayList<Vertex> vertices){
+    private static Coordinate[] vertexToCoords(ArrayList<Vertex> vertices){
         Coordinate[] coordinates = new Coordinate[vertices.size()+1];
         for(int i =0; i < vertices.size(); i++){
             coordinates[i] = vertices.get(i).position;
@@ -187,7 +198,7 @@ public class Mesh {
         return coordinates;
     }
 
-    private Edge getEdgeFromVertex(Vertex vertex, ArrayList<Edge> edges){
+    private static Edge getEdgeFromVertex(Vertex vertex, ArrayList<Edge> edges){
         for (Edge edge: edges) {
             if(edge.vertexA.position == vertex.position){
                 return edge;
@@ -208,24 +219,31 @@ public class Mesh {
                 return edge;
             }
         }
-        SceneRenderer.render(vertex1.position);
-        SceneRenderer.render(vertex2.position);
         return null;
     }
 
-    public boolean faceIsTriangle(Face face){
+    public static boolean faceIsTriangle(Face face){
         ArrayList<Vertex> vertices = face.vertices;
         double innerAngle = 0;
         for(int i =0; i < vertices.size(); i++){
-            double angle = getAngleOfCorner(vertices.get(i-1), vertices.get(i), vertices.get(i+1));
-            if(angle != Math.PI){
+            double angle = getAngleOfCorner(getValue(vertices, i-1), getValue(vertices, i), getValue(vertices, i+1));
+            if(angle < (Math.PI - 0.01)){
                 innerAngle += angle;
+            } else {
+                SceneRenderer.render(vertices.get(i).position);
             }
         }
-        return innerAngle == Math.PI/2;
+        return innerAngle == Math.PI;
     }
 
-    private double getAngleOfCorner(Vertex left, Vertex joint, Vertex right){
-        return Angle.angleBetweenOriented(left.position, joint.position, right.position);
+    private static Vertex getValue(ArrayList<Vertex> vertices, int value){
+        if(value < 0){
+            return vertices.get(vertices.size() + value);
+        }
+        return vertices.get(value % vertices.size());
+    }
+
+    private static double getAngleOfCorner(Vertex left, Vertex joint, Vertex right){
+        return Angle.angleBetween(left.position, joint.position, right.position);
     }
 }

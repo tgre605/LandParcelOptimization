@@ -1,6 +1,7 @@
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
+import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
 import java.math.BigDecimal;
@@ -657,6 +658,6 @@ public class LandParcelOptimizer {
     }
 
     public static boolean isTriangle(Geometry geometry, double tolerance){
-        return !(TopologyPreservingSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
+        return !(DouglasPeuckerSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
     }
 }

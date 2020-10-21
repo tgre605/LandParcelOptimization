@@ -27,15 +27,10 @@ public class Main extends Application {
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
+        int i = 0;
         for (LandParcel parcel : LandParcels) {
-            System.out.println("testStart");
             parcel.surroundingParcels(reader);
-            //ParcelMesh parcelMesh = new ParcelMesh(parcel);
-            //parcelMesh.test();
-            //parcelMesh.drawMesh();
-            Mesh mesh = new Mesh(parcel);
             new BoundingBoxOptimizer().BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
-            //parcel = landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 0.25, 0.9, 30, 5);
             switch (parcel.landType){
                 case industry:
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Yellow);
@@ -50,6 +45,8 @@ public class Main extends Application {
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Red);
                     break;
             }
+            i++;
+            System.out.println("Parcels computed: " + i);
             /*
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);
@@ -66,10 +63,10 @@ public class Main extends Application {
                 }
 
             }
-
-            System.out.println("test");
-            sceneRenderer.start(stage);
+            */
         }
+        System.out.println("Finished Computing");
+        sceneRenderer.start(stage);
     }
 
     public static void main(String[] args) {

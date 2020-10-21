@@ -24,6 +24,7 @@ public class Footprint {
     public Footprint (Geometry shape){
         this.geometry = shape;
         id = nextId;
+        this.geometry.setUserData(id);
         population = 653;
         populationDensity = 0.003658769001167474;
         nextId++;

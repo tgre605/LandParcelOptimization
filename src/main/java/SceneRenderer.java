@@ -82,13 +82,6 @@ public class SceneRenderer {
         SceneRenderer.outlineGeometries.addAll(Arrays.asList(geometries));
     }
 
-//    public static void render(Geometry geometry){
-//        render(new Geometry[] {geometry});
-//    }
-//    public static void render(Geometry[] geometries){
-//        SceneRenderer.geometries.addAll(Arrays.asList(geometries));
-//    }
-
     public static void render(LandParcel landParcel){
         render(new LandParcel[] {landParcel});
     }

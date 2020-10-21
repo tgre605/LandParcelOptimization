@@ -1,3 +1,4 @@
+/*
 import javafx.scene.paint.Color;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -230,3 +231,4 @@ public class ParcelMesh {
         }
     }
 }
+*/

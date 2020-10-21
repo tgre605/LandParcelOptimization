@@ -1,6 +1,7 @@
 import javafx.scene.paint.Color;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -22,7 +23,7 @@ public class BoundingBoxOptimizer {
             boolean usingTriangleSplit = false;
             // Check if is a triangle if so chop off the end of it
             Polygon polygon = parcelMesh.faceToPolygon(largeFootprints.get(0));
-            if(LandParcelOptimizer.isTriangle(polygon, 0.5)){
+            if(isTriangle(polygon, 0.5)){
                 try {
                     Coordinate[] splitLine = getEdgeSplitForTriangles(boundingBox, false);
                     finalFootprints = parcelMesh.splitEdge(splitLine[0], splitLine[1], largeFootprints.get(0), roadLength);
@@ -90,7 +91,7 @@ public class BoundingBoxOptimizer {
     private boolean setHasTriangle(Mesh.Face[] footprints){
         Polygon polygonA = Mesh.faceToPolygon(footprints[0]);
         Polygon polygonB = Mesh.faceToPolygon(footprints[1]);
-        return LandParcelOptimizer.isTriangle(polygonA, 0.5) ||  LandParcelOptimizer.isTriangle(polygonB, 0.5);
+        return isTriangle(polygonA, 0.5) ||  isTriangle(polygonB, 0.5);
     }
 
 
@@ -147,5 +148,10 @@ public class BoundingBoxOptimizer {
             Coordinate midpoint2 = new Coordinate(mid2x, mid2y);
             return new Coordinate[]{midpoint1, midpoint2};
         }
+    }
+
+
+    private boolean isTriangle(Geometry geometry, double tolerance){
+        return !(DouglasPeuckerSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
     }
 }

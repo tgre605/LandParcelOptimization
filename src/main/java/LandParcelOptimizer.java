@@ -1,3 +1,4 @@
+/*
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
@@ -352,7 +353,8 @@ public class LandParcelOptimizer {
 
     Polygon snapRoads(Footprint footprint, LandParcel parcel){
         List<Coordinate> coordinates = Arrays.asList(footprint.geometry.getCoordinates());
-        /*
+        */
+/*
         for(Coordinate[] roads : footprint.roadsideEdges.keySet()){
             Road road = footprint.roadsideEdges.get(roads);
             for(Coordinate[] otherRoads : footprint.roadsideEdges.keySet()){
@@ -384,8 +386,10 @@ public class LandParcelOptimizer {
                 road.coordinateB = generatedSnappedCoord(road.coordinateB);
             footprint.roadsideEdges.put(roads, road);
         }
-         */
-        /*
+         *//*
+
+        */
+/*
         for(Coordinate[] roads : footprint.roadsideEdges.keySet()){
             Road road = footprint.roadsideEdges.get(roads);
             if(!pointOnParcelEdge(road.coordinateA, parcel))
@@ -394,8 +398,10 @@ public class LandParcelOptimizer {
                 road.coordinateB = generatedSnappedCoord(road.coordinateB);
             footprint.roadsideEdges.put(roads, road);
         }
+        *//*
+
         */
-        /*
+/*
         for(Coordinate[] road : footprint.roadsideEdges.keySet() ){
             if(!pointOnParcelEdge(road[0], parcel)){
                 if(coordinates.indexOf(road[0]) != -1) {
@@ -412,7 +418,8 @@ public class LandParcelOptimizer {
                 }v
             }
         }
-        */
+        *//*
+
         coordinates.set(coordinates.size() - 1, coordinates.get(0));
         return new GeometryFactory().createPolygon(coordinates.toArray(new Coordinate[0]));
     }
@@ -600,12 +607,14 @@ public class LandParcelOptimizer {
             return geom; // In my case, I only care about polygon / multipolygon geometries
         }
     }
-    /**
+    */
+/**
      * Add all line strings from the polygon given to the polygonizer given
      *
      * @param polygon polygon from which to extract line strings
      * @param polygonizer polygonizer
-     */
+     *//*
+
     static void addPolygon(Polygon polygon, Polygonizer polygonizer){
         addLineString(polygon.getExteriorRing(), polygonizer);
         for(int n = polygon.getNumInteriorRing(); n-- > 0;){
@@ -613,12 +622,14 @@ public class LandParcelOptimizer {
         }
     }
 
-    /**
+    */
+/**
      * Add the linestring given to the polygonizer
      *
      * @param lineString line string
      * @param polygonizer polygonizer
-     */
+     *//*
+
     static void addLineString(LineString lineString, Polygonizer polygonizer){
 
         if(lineString instanceof LinearRing){ // LinearRings are treated differently to line strings : we need a LineString NOT a LinearRing
@@ -633,13 +644,15 @@ public class LandParcelOptimizer {
         polygonizer.add(toAdd);
     }
 
-    /**
+    */
+/**
      * Get a geometry from a collection of polygons.
      *
      * @param polygons collection
      * @param factory factory to generate MultiPolygon if required
      * @return null if there were no polygons, the polygon if there was only one, or a MultiPolygon containing all polygons otherwise
-     */
+     *//*
+
     static Geometry toPolygonGeometry(Collection<Polygon> polygons, GeometryFactory factory){
         switch(polygons.size()){
             case 0:
@@ -657,7 +670,5 @@ public class LandParcelOptimizer {
         }
     }
 
-    public static boolean isTriangle(Geometry geometry, double tolerance){
-        return !(DouglasPeuckerSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
-    }
 }
+*/

@@ -24,13 +24,13 @@ public class Main extends Application {
         Path currentDir = Paths.get(".");
         JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
-        LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
+        BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         int i = 0;
         for (LandParcel parcel : LandParcels) {
             parcel.surroundingParcels(reader);
-            new BoundingBoxOptimizer().BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
+            boundingBoxOptimizer.BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
             switch (parcel.landType){
                 case industry:
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Yellow);

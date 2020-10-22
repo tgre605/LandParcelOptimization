@@ -20,6 +20,7 @@ public class Footprint {
     public Road usableRoad;
     public double population;
     public double populationDensity;
+    public boolean hasBuilding = true;
 
     public Footprint (Geometry shape){
         this.geometry = shape;

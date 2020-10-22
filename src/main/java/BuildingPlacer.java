@@ -15,7 +15,7 @@ public class BuildingPlacer {
         CBuildingFootprints = reader.CBuildingFootprints;
         IBuildingFootprints = reader.IBuildingFootprints;
         for (Footprint footprint: landParcel.footprints) {
-            if(footprint.getRoadsideEdges().size()>0){
+            if(footprint.hasBuilding && footprint.getRoadsideEdges().size()>0){
                 switch (landParcel.landType){
                     case industry:
                         footprint.addBuilding(new Building(footprint, IBuildingFootprints, landParcel.landType));

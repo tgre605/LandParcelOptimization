@@ -44,8 +44,12 @@ public class SceneRenderer {
     private static ArrayList<Coordinate> coordinates = new ArrayList<>();
     private static ArrayList<Geometry> outlineGeometries = new ArrayList<>();
     private static ArrayList<Coordinate> lines = new ArrayList<>();
+    private static ArrayList<Coordinate> whiteLines = new ArrayList<>();
 
     private static Text text = new Text();
+
+    public static void renderLine(org.locationtech.jts.geom.Polygon polygon, Color beige) {
+    }
 
     public enum ColorSpectrum {Green, Blue, Red, Yellow}
 
@@ -97,6 +101,9 @@ public class SceneRenderer {
 
     public static void renderLine(Coordinate[] coordinates){
         SceneRenderer.lines.addAll(Arrays.asList(coordinates));
+    }
+    public static void renderWhiteLine(Coordinate[] coordinates){
+        SceneRenderer.whiteLines.addAll(Arrays.asList(coordinates));
     }
 
     static Coordinate Scale(Point input){
@@ -208,24 +215,6 @@ public class SceneRenderer {
             root.getChildren().add(polygon);
         }
 
-        for(int i= 0; i < coordinates.size(); i++){
-            Circle circle = new Circle();
-            circle.setCenterX(coordinates.get(i).x);
-            circle.setCenterY(coordinates.get(i).y);
-            circle.setRadius(0.25);
-            circle.setOnMouseEntered(mouseOver);
-            circle.setUserData(coordinates.get(i));
-            circle.setFill(Color.RED.interpolate(Color.DARKRED, (double) i/coordinates.size()));
-            root.getChildren().add(circle);
-        }
-
-        for(int i= 0; i < lines.size()-1; i+=2){
-            Line line = new Line(lines.get(i).x, lines.get(i).y, lines.get(i+1).x, lines.get(i+1).y);
-            line.setStroke(Color.YELLOW);
-            line.setStrokeWidth(0.075f);
-            root.getChildren().add(line);
-        }
-
 
         for (Geometry geometry: geometryColor.keySet()) {
             Polygon polygon = ConvertPolygon(geometry);
@@ -235,6 +224,31 @@ public class SceneRenderer {
             polygon.setOnMouseEntered(mouseOver);
             polygon.setUserData(geometry);
             root.getChildren().add(polygon);
+        }
+
+        for(int i= 0; i < lines.size()-1; i+=2){
+            Line line = new Line(lines.get(i).x, lines.get(i).y, lines.get(i+1).x, lines.get(i+1).y);
+            line.setStroke(Color.YELLOW);
+            line.setStrokeWidth(0.15f);
+            root.getChildren().add(line);
+        }
+
+
+        for(int i= 0; i < whiteLines.size()-1; i+=2){
+            Line line = new Line(whiteLines.get(i).x, whiteLines.get(i).y, whiteLines.get(i+1).x, whiteLines.get(i+1).y);
+            line.setStroke(Color.WHITE);
+            line.setStrokeWidth(0.075f);
+            root.getChildren().add(line);
+        }
+        for(int i= 0; i < coordinates.size(); i++){
+            Circle circle = new Circle();
+            circle.setCenterX(coordinates.get(i).x);
+            circle.setCenterY(coordinates.get(i).y);
+            circle.setRadius(0.1);
+            circle.setOnMouseEntered(mouseOver);
+            circle.setUserData(coordinates.get(i));
+            circle.setFill(Color.RED.interpolate(Color.DARKRED, (double) i/coordinates.size()));
+            root.getChildren().add(circle);
         }
 
 

@@ -7,6 +7,7 @@ import org.locationtech.jts.geom.Geometry;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 
 class DragContext {
 
@@ -23,16 +24,29 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
+        LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         int i = 0;
+        long startTime = System.currentTimeMillis();
+        System.out.println(LandParcels.size());
         for (LandParcel parcel : LandParcels) {
             parcel.surroundingParcels(reader);
-            boundingBoxOptimizer.BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
+            boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
 
+            i++;
+            if(i == 100){
+                break;
+            }
+            //if(i % 100 == 0)
+                System.out.println("Parcels computed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
+        }
+        i = 0;
+        startTime = System.currentTimeMillis();
+        for (LandParcel parcel : LandParcels) {
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);
             placer.surroundingFootprints(parcel);
@@ -64,9 +78,9 @@ public class Main extends Application {
 
             }
 
-
             i++;
-            System.out.println("Parcels computed: " + i);
+            //if(i % 100 == 0)
+                System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
         }
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);

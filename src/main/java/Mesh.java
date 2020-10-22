@@ -2,8 +2,12 @@ import javafx.scene.paint.Color;
 import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
+import org.locationtech.jts.operation.polygonize.Polygonizer;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class Mesh {
     public static int nextVertexId, nextEdgeId, nextFaceId;
@@ -55,7 +59,8 @@ public class Mesh {
     }
 
     public Face footprint;
-    public static ArrayList<Road> roads = new ArrayList<>();
+    public  static HashMap<Road, Vertex[]> roads = new HashMap<>();
+    //public static ArrayList<Road> roads = new ArrayList<>();
 
     public Mesh(LandParcel landParcel){
         Face face = new Face();
@@ -65,22 +70,24 @@ public class Mesh {
             face.vertices.add(vertex);
         }
         for (int i =0; i < face.vertices.size()-1; i++){
-            roads.add(new Road(face.vertices.get(i).position, face.vertices.get((i+1) % face.vertices.size()).position, Road.RoadType.mainRoad));
+            roads.put(new Road(face.vertices.get(i).position, face.vertices.get((i+1) % face.vertices.size()).position, Road.RoadType.mainRoad),
+                    new Vertex[]{face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size())});
             face.edges.add(new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size()), true));
         }
         face.edges.add(new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1),true));
-        roads.add(new Road(face.vertices.get(0).position, face.vertices.get(face.vertices.size()-1).position, Road.RoadType.mainRoad));
+        roads.put(new Road(face.vertices.get(0).position, face.vertices.get(face.vertices.size()-1).position, Road.RoadType.mainRoad),
+                new Vertex[]{face.vertices.get(0), face.vertices.get((face.vertices.size()-1) % face.vertices.size())});
         footprint = face;
     }
 
-    public Coordinate midPoint(Coordinate a, Coordinate b){
-        return new Coordinate((a.x + b.x)/2, (a.y + b.y)/2);
-    }
-
-
     public Face[] splitEdge(Coordinate coordinateA, Coordinate coordinateB, Face face, double roadLength){
         LineString line = new GeometryFactory().createLineString(new Coordinate[]{coordinateA, coordinateB});
-        Coordinate[] coordinates = faceToPolygon(face).intersection(line).getCoordinates();
+        Coordinate[] coordinates = null;
+        try {
+            coordinates = faceToPolygon(face).intersection(line).getCoordinates();
+        } catch (TopologyException e){
+            coordinates = validate(faceToPolygon(face)).intersection(line).getCoordinates();
+        }
         Vertex vertex1 = new Vertex(coordinates[0]);
         Vertex vertex2 = new Vertex(coordinates[1]);
         Edge splittingEdgeA = getEdgeOnVertex(vertex1, face.edges);
@@ -102,7 +109,8 @@ public class Mesh {
         Edge newEdge = new Edge(vertex1, vertex2);
 
         if(vertex1.position.distance(vertex2.position) > roadLength){
-            roads.add(new Road(vertex1.position, vertex2.position, Road.RoadType.subRoad));
+            roads.put(new Road(vertex1.position, vertex2.position, Road.RoadType.subRoad),
+                    new Vertex[] {vertex1, vertex2});
             newEdge.roadsideEdge = true;
         }
 
@@ -258,5 +266,68 @@ public class Mesh {
 
     private static double getAngleOfCorner(Vertex left, Vertex joint, Vertex right){
         return Angle.angleBetween(left.position, joint.position, right.position);
+    }
+
+
+    public static Geometry validate(Geometry geom){
+        if(geom instanceof Polygon){
+            if(geom.isValid()){
+                geom.normalize(); // validate does not pick up rings in the wrong order - this will fix that
+                return geom; // If the polygon is valid just return it
+            }
+            Polygonizer polygonizer = new Polygonizer();
+            addPolygon((Polygon)geom, polygonizer);
+            return toPolygonGeometry(polygonizer.getPolygons(), geom.getFactory());
+        }else if(geom instanceof MultiPolygon){
+            if(geom.isValid()){
+                geom.normalize(); // validate does not pick up rings in the wrong order - this will fix that
+                return geom; // If the multipolygon is valid just return it
+            }
+            Polygonizer polygonizer = new Polygonizer();
+            for(int n = geom.getNumGeometries(); n-- > 0;){
+                addPolygon((Polygon)geom.getGeometryN(n), polygonizer);
+            }
+            return toPolygonGeometry(polygonizer.getPolygons(), geom.getFactory());
+        }else{
+            return geom; // In my case, I only care about polygon / multipolygon geometries
+        }
+    }
+
+    static void addPolygon(Polygon polygon, Polygonizer polygonizer){
+        addLineString(polygon.getExteriorRing(), polygonizer);
+        for(int n = polygon.getNumInteriorRing(); n-- > 0;){
+            addLineString(polygon.getInteriorRingN(n), polygonizer);
+        }
+    }
+
+    static void addLineString(LineString lineString, Polygonizer polygonizer){
+
+        if(lineString instanceof LinearRing){ // LinearRings are treated differently to line strings : we need a LineString NOT a LinearRing
+            lineString = lineString.getFactory().createLineString(lineString.getCoordinateSequence());
+        }
+
+        // unioning the linestring with the point makes any self intersections explicit.
+        Point point = lineString.getFactory().createPoint(lineString.getCoordinateN(0));
+        Geometry toAdd = lineString.union(point);
+
+        //Add result to polygonizer
+        polygonizer.add(toAdd);
+    }
+
+    static Geometry toPolygonGeometry(Collection<Polygon> polygons, GeometryFactory factory){
+        switch(polygons.size()){
+            case 0:
+                return null; // No valid polygons!
+            case 1:
+                return polygons.iterator().next(); // single polygon - no need to wrap
+            default:
+                //polygons may still overlap! Need to sym difference them
+                Iterator<Polygon> iter = polygons.iterator();
+                Geometry ret = iter.next();
+                while(iter.hasNext()){
+                    ret = ret.symDifference(iter.next());
+                }
+                return ret;
+        }
     }
 }

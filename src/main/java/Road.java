@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Road {
     public enum RoadType{highway, mainRoad, subRoad, undefined}
-    RoadType roadType;
+    public RoadType roadType;
     public ArrayList<Coordinate> vertices = new ArrayList<>();
     public Coordinate start;
     public Coordinate end;
@@ -14,5 +14,4 @@ public class Road {
         this.end = end;
         this.roadType = roadType;
     }
-
 }

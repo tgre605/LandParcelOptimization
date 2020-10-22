@@ -2,6 +2,7 @@ import javafx.scene.paint.Color;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
+import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -75,17 +76,47 @@ public class BoundingBoxOptimizer {
         }
 
         for (Mesh.Face face : smallFootprints) {
-            for(Mesh.Edge edges : face.edges ){
-                if(edges.roadsideEdge){
-                    SceneRenderer.renderLine(new Coordinate[]{edges.vertexA.position, edges.vertexB.position});
-                }
-            }
             Polygon polygon = parcelMesh.faceToPolygon(face);
             Footprint footprint = new Footprint(polygon);
+            footprint = assignRoadSideEdges(Mesh.roads, footprint, face);
+            for(Coordinate[] coords : footprint.getRoadsideEdges().keySet()){
+                SceneRenderer.renderLine(new Coordinate[]{coords[0], coords[1]});
+            }
             inputParcel.footprints.add(footprint);
         }
 
         return inputParcel;
+    }
+
+    Footprint assignRoadSideEdges(ArrayList<Road> roads, Footprint footprint, Mesh.Face face){
+        ArrayList<Mesh.Vertex> vertices = face.vertices;
+        for(int i= 0; i < vertices.size()-1; i++){
+            if(Mesh.getEdge(vertices.get(i), vertices.get(i + 1), face.edges).roadsideEdge) {
+                for (int j = 0; j < roads.size(); j++) {
+                    if (edgeOnLine(roads.get(j).start, roads.get(j).end, vertices.get(i).position, vertices.get(i + 1).position)) {
+                        footprint.roadsideIndex.put(i, roads.get(j));
+                    }
+                }
+            }
+        }
+        return footprint;
+    }
+
+    // LineA -- A -- B -- LineB
+    boolean edgeOnLine(Coordinate LineA, Coordinate LineB, Coordinate A, Coordinate B){
+        double lineDistance = LineA.distance(LineB);
+        double LineAA = LineA.distance(A);
+        double AB = A.distance(B);
+        double BLineB = B.distance(LineB);
+
+        double total = lineDistance - (LineAA + AB + BLineB);
+
+        double LineAB = LineA.distance(B);
+        double ALineB = A.distance(LineB);
+
+        double otherTotal = lineDistance - (LineAB + AB + ALineB);
+
+        return (total < 0.00001 && total > -0.00001) || (otherTotal < 0.00001 && otherTotal > -0.00001);
     }
 
     private boolean setHasTriangle(Mesh.Face[] footprints){
@@ -150,8 +181,11 @@ public class BoundingBoxOptimizer {
         }
     }
 
+    private Geometry getSimpleGeometry(Geometry geometry){
+        return TopologyPreservingSimplifier.simplify(geometry, 0.01);
+    }
 
-    private boolean isTriangle(Geometry geometry, double tolerance){
+    public static boolean isTriangle(Geometry geometry, double tolerance){
         return !(DouglasPeuckerSimplifier.simplify(geometry, tolerance).getCoordinates().length > 4);
     }
 }

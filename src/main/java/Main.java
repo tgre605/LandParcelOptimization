@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -31,6 +32,12 @@ public class Main extends Application {
         for (LandParcel parcel : LandParcels) {
             parcel.surroundingParcels(reader);
             boundingBoxOptimizer.BoundingBoxOptimization(parcel,  5, 0.25, 0.9, 30, 5);
+
+            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+            placer.setRoadCentre(parcel);
+            placer.surroundingFootprints(parcel);
+            placer.placeBuildings(parcel, reader);
+
             switch (parcel.landType){
                 case industry:
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Yellow);
@@ -45,13 +52,6 @@ public class Main extends Application {
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Red);
                     break;
             }
-            i++;
-            System.out.println("Parcels computed: " + i);
-            /*
-            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
-            placer.setRoadCentre(parcel);
-            placer.surroundingFootprints(parcel);
-            placer.placeBuildings(parcel, reader);
 
             for (Footprint footprint : parcel.footprints) {
                 if (footprint.id == 157 || footprint.id == 165) {
@@ -59,11 +59,14 @@ public class Main extends Application {
                 }
 
                 if (footprint.building != null) {
-                    SceneRenderer.render(footprint.building.polygon);
+                    SceneRenderer.render(footprint.building.polygon, Color.BLACK);
                 }
 
             }
-            */
+
+
+            i++;
+            System.out.println("Parcels computed: " + i);
         }
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);

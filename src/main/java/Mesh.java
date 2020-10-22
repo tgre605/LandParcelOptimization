@@ -55,6 +55,7 @@ public class Mesh {
     }
 
     public Face footprint;
+    public static ArrayList<Road> roads = new ArrayList<>();
 
     public Mesh(LandParcel landParcel){
         Face face = new Face();
@@ -64,9 +65,11 @@ public class Mesh {
             face.vertices.add(vertex);
         }
         for (int i =0; i < face.vertices.size()-1; i++){
+            roads.add(new Road(face.vertices.get(i).position, face.vertices.get((i+1) % face.vertices.size()).position, Road.RoadType.mainRoad));
             face.edges.add(new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size()), true));
         }
         face.edges.add(new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1),true));
+        roads.add(new Road(face.vertices.get(0).position, face.vertices.get(face.vertices.size()-1).position, Road.RoadType.mainRoad));
         footprint = face;
     }
 
@@ -99,6 +102,7 @@ public class Mesh {
         Edge newEdge = new Edge(vertex1, vertex2);
 
         if(vertex1.position.distance(vertex2.position) > roadLength){
+            roads.add(new Road(vertex1.position, vertex2.position, Road.RoadType.subRoad));
             newEdge.roadsideEdge = true;
         }
 
@@ -142,6 +146,15 @@ public class Mesh {
             }
         }
         return false;
+    }
+
+    public static Edge getEdge(Vertex vertexA, Vertex vertexB, ArrayList<Edge> edges){
+        for (Edge edge: edges) {
+            if((edge.vertexA == vertexA && edge.vertexB == vertexB) || (edge.vertexB == vertexA && edge.vertexA == vertexB) ){
+                return edge;
+            }
+        }
+        return null;
     }
 
     private Edge getEdgeOnVertex(Vertex vertex, ArrayList<Edge> edges){

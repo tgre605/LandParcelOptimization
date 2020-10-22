@@ -79,6 +79,9 @@ public class Main extends Application {
             }
 
             i++;
+            if(i == 100){
+                break;
+            }
             //if(i % 100 == 0)
                 System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
         }

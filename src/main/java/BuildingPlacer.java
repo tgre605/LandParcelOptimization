@@ -154,15 +154,17 @@ public class BuildingPlacer {
     public void surroundingFootprints(LandParcel landParcel){
         for (Footprint footprint: landParcel.footprints) {
             for (Footprint footprintCompare: landParcel.footprints) {
-                if(footprint.id != footprintCompare.id){
-                    double xCentre = footprint.geometry.getCentroid().getX();
-                    double yCentre = footprint.geometry.getCentroid().getY();
-                    AffineTransformation atCentre = new AffineTransformation();
-                    atCentre.scale(1.001,1.001);
-                    atCentre.translate(-xCentre*0.001, -yCentre*0.001);
-                    Geometry scaled = atCentre.transform(footprint.geometry);
-                    if(scaled.intersects(footprintCompare.geometry)|| scaled.overlaps(footprintCompare.geometry)){
-                        footprint.neighbours.add(footprintCompare);
+                if (footprintCompare.geometry.getCentroid().distance(footprint.geometry.getCentroid()) < 6){
+                    if(footprint.id != footprintCompare.id){
+                        double xCentre = footprint.geometry.getCentroid().getX();
+                        double yCentre = footprint.geometry.getCentroid().getY();
+                        AffineTransformation atCentre = new AffineTransformation();
+                        atCentre.scale(1.001,1.001);
+                        atCentre.translate(-xCentre*0.001, -yCentre*0.001);
+                        Geometry scaled = atCentre.transform(footprint.geometry);
+                        if(scaled.intersects(footprintCompare.geometry)|| scaled.overlaps(footprintCompare.geometry)){
+                            footprint.neighbours.add(footprintCompare);
+                        }
                     }
                 }
             }

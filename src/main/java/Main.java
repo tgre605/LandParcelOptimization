@@ -24,7 +24,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
@@ -68,9 +68,9 @@ public class Main extends Application {
             }
 
             for (Footprint footprint : parcel.footprints) {
-                if (footprint.id == 157 || footprint.id == 165) {
-                    placer.createDriveway(footprint);
-                }
+                //if (footprint.id == 157 || footprint.id == 165) {
+                //    placer.createDriveway(footprint);
+                //}
 
                 if (footprint.building != null) {
                     SceneRenderer.render(footprint.building.polygon, Color.GREY);

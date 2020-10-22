@@ -1,11 +1,8 @@
 import org.locationtech.jts.algorithm.Angle;
-import org.locationtech.jts.algorithm.Distance;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.AffineTransformation;
-import org.locationtech.jts.operation.distance.DistanceOp;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static java.lang.Math.abs;
 
@@ -124,14 +121,21 @@ public class Building {
                 }
             }
             //if building is still overlapping other footprints, scale down until within own footprint
-            while (!rotatedGeom.within(footprint.geometry)) {
-                xCentre = rotatedGeom.getCentroid().getX();
-                yCentre = rotatedGeom.getCentroid().getY();
-                AffineTransformation atScale = new AffineTransformation();
-                scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
-                atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustSmaller, buildingFootprintScaleAdjustSmaller, xCentre, yCentre);
-                rotatedGeom = atScale.transform(rotatedGeom);
-            }
+            rotatedGeom = scaleDownWithinFootprint(footprint, rotatedGeom);
+        }
+        return rotatedGeom;
+    }
+
+    private Geometry scaleDownWithinFootprint(Footprint footprint, Geometry rotatedGeom) {
+        double xCentre;
+        double yCentre;
+        while (!rotatedGeom.within(footprint.geometry)) {
+            xCentre = rotatedGeom.getCentroid().getX();
+            yCentre = rotatedGeom.getCentroid().getY();
+            AffineTransformation atScale = new AffineTransformation();
+            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
+            atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustSmaller, buildingFootprintScaleAdjustSmaller, xCentre, yCentre);
+            rotatedGeom = atScale.transform(rotatedGeom);
         }
         return rotatedGeom;
     }
@@ -158,7 +162,7 @@ public class Building {
         yVector = (footprint.roadCentre.y - footprint.geometry.getCentroid().getY());
         xCentre = rotatedGeom.getCentroid().getX();
         yCentre = rotatedGeom.getCentroid().getY();
-        b:for (int i = 1; i < 20; i++) {
+        b:for (int i = 1; i < 15; i++) {
             AffineTransformation atScale = new AffineTransformation();
             scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustBigger;
             atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustBigger, buildingFootprintScaleAdjustBigger, xCentre, yCentre);
@@ -183,14 +187,7 @@ public class Building {
             }
         }
         //if building is still overlapping other footprints, scale down until within own footprint
-        while (!rotatedGeom.within(footprint.geometry)) {
-            xCentre = rotatedGeom.getCentroid().getX();
-            yCentre = rotatedGeom.getCentroid().getY();
-            AffineTransformation atScale = new AffineTransformation();
-            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
-            atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustSmaller, buildingFootprintScaleAdjustSmaller, xCentre, yCentre);
-            rotatedGeom = atScale.transform(rotatedGeom);
-        }
+        rotatedGeom = scaleDownWithinFootprint(footprint, rotatedGeom);
         return rotatedGeom;
     }
 
@@ -215,7 +212,7 @@ public class Building {
         xCentre = rotatedGeom.getCentroid().getX();
         yCentre = rotatedGeom.getCentroid().getY();
         b:
-        for (int i = 1; i < 15; i++) {
+        for (int i = 1; i < 10; i++) {
             AffineTransformation atScale = new AffineTransformation();
             scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustBigger;
             atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustBigger, buildingFootprintScaleAdjustBigger, xCentre, yCentre);
@@ -244,14 +241,7 @@ public class Building {
         }
 
         //if building is still overlapping other footprints, scale down until within own footprint
-        while (!rotatedGeom.within(footprint.geometry)) {
-            xCentre = rotatedGeom.getCentroid().getX();
-            yCentre = rotatedGeom.getCentroid().getY();
-            AffineTransformation atScale = new AffineTransformation();
-            scalingFactorTotal = scalingFactorTotal * buildingFootprintScaleAdjustSmaller;
-            atScale = AffineTransformation.scaleInstance(buildingFootprintScaleAdjustSmaller, buildingFootprintScaleAdjustSmaller, xCentre, yCentre);
-            rotatedGeom = atScale.transform(rotatedGeom);
-        }
+        rotatedGeom = scaleDownWithinFootprint(footprint, rotatedGeom);
         return rotatedGeom;
     }
 

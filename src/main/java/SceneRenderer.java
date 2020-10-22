@@ -172,16 +172,6 @@ public class SceneRenderer {
             root.getChildren().add(polygon);
         }
 
-        for (Geometry geometry: geometryColor.keySet()) {
-            Polygon polygon = ConvertPolygon(geometry);
-            polygon.setFill(geometryColor.get(geometry));
-            polygon.setStroke(Color.GRAY);
-            polygon.setStrokeWidth(0.01f);
-            polygon.setOnMouseEntered(mouseOver);
-            polygon.setUserData(geometry);
-            root.getChildren().add(polygon);
-        }
-
         int j = 0;
         for (Geometry geometry: geometryColorSpectrum.keySet()) {
             Polygon polygon = ConvertPolygon(geometry);
@@ -234,6 +224,17 @@ public class SceneRenderer {
             line.setStroke(Color.YELLOW);
             line.setStrokeWidth(0.075f);
             root.getChildren().add(line);
+        }
+
+
+        for (Geometry geometry: geometryColor.keySet()) {
+            Polygon polygon = ConvertPolygon(geometry);
+            polygon.setFill(geometryColor.get(geometry));
+            polygon.setStroke(Color.GRAY);
+            polygon.setStrokeWidth(0.01f);
+            polygon.setOnMouseEntered(mouseOver);
+            polygon.setUserData(geometry);
+            root.getChildren().add(polygon);
         }
 
 

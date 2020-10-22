@@ -59,7 +59,7 @@ public class Main extends Application {
                 }
 
                 if (footprint.building != null) {
-                    SceneRenderer.render(footprint.building.polygon, Color.BLACK);
+                    SceneRenderer.render(footprint.building.polygon, Color.GREY);
                 }
 
             }

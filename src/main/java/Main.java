@@ -34,23 +34,26 @@ public class Main extends Application {
         long startTime = System.currentTimeMillis();
         System.out.println(LandParcels.size());
         for (LandParcel parcel : LandParcels) {
-            parcel.surroundingParcels(reader);
-            boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
+            if(i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169){
+                parcel.surroundingParcels(reader);
+                boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
+            } else {
+                SceneRenderer.render(parcel.polygon, Color.BLACK);
+            }
+
+            //landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 5, 0.5, 5, 5);
 
             i++;
-            if(i == 100){
-                break;
-            }
             //if(i % 100 == 0)
-                System.out.println("Parcels computed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
+            System.out.println("Parcels computed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
         }
         i = 0;
         startTime = System.currentTimeMillis();
         for (LandParcel parcel : LandParcels) {
-            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
-            placer.setRoadCentre(parcel);
-            placer.surroundingFootprints(parcel);
-            placer.placeBuildings(parcel, reader);
+            //reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+            //placer.setRoadCentre(parcel);
+            //placer.surroundingFootprints(parcel);
+            //placer.placeBuildings(parcel, reader);
 
             switch (parcel.landType){
                 case industry:
@@ -79,11 +82,11 @@ public class Main extends Application {
             }
 
             i++;
-            if(i == 100){
+            if(i == 10){
                 break;
             }
             //if(i % 100 == 0)
-                System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
+            System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
         }
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);

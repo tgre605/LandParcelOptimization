@@ -3,6 +3,8 @@ import org.locationtech.jts.algorithm.Angle;
 import org.locationtech.jts.algorithm.MinimumDiameter;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
+import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
+import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -120,6 +122,51 @@ public class Mesh {
         return new Face[]{face1, face2};
     }
 
+    private Face validateFace(Face face){
+        for(int i = 0 ; i < face.vertices.size(); i++){
+            for(int j = 0 ; j < face.vertices.size(); j++){
+                if(face.vertices.get(i) != face.vertices.get(j)) {
+                    if (face.vertices.get(i).position.distance(face.vertices.get(j).position) < 0.0001) {
+                        getSharedVertex(face.vertices.get(i), face.vertices.get(j), face.edges).position = face.vertices.get(i).position;
+                        SceneRenderer.render(face.vertices.get(i).position);
+                    }
+                }
+            }
+        }
+        return face;
+    }
+
+    private Vertex getSharedVertex(Vertex vertex, Vertex otherVertex, ArrayList<Edge> edges){
+        ArrayList<Vertex> vertexANeighbours = new ArrayList<>();
+        ArrayList<Vertex> vertexBNeighbours = new ArrayList<>();
+        for(int i = 0; i < edges.size(); i++){
+            if(edges.get(i).vertexA == vertex ){
+                vertexANeighbours.add(edges.get(i).vertexB);
+            }
+            if(edges.get(i).vertexB == vertex ){
+                vertexANeighbours.add(edges.get(i).vertexA);
+            }
+            if(edges.get(i).vertexA == otherVertex ){
+                vertexBNeighbours.add(edges.get(i).vertexB);
+            }
+            if(edges.get(i).vertexB == otherVertex ){
+                vertexBNeighbours.add(edges.get(i).vertexA);
+            }
+        }
+        vertexANeighbours.retainAll(vertexBNeighbours);
+        return vertexANeighbours.get(0);
+    }
+
+    private ArrayList<Edge> getEdgesWithVertex(Vertex vertex, ArrayList<Edge> edges){
+        ArrayList<Edge> vertEdges = new ArrayList<>();
+        for(Edge edge : edges){
+            if(edge.vertexB == vertex || edge.vertexA == vertex){
+                vertEdges.add(edge);
+            }
+        }
+        return vertEdges;
+    }
+
     private ArrayList<Edge> getEdgesFromVertices(ArrayList<Vertex> vertices, ArrayList<Edge> footprintEdges){
         ArrayList<Edge> edges = new ArrayList<>();
         for(int i =0;i < vertices.size()-1; i++){
@@ -196,18 +243,31 @@ public class Mesh {
 
     public static Polygon faceToPolygon(Face face){
         ArrayList<Vertex> vertices = new ArrayList<>();
-        ArrayList<Edge> edgesToWalk = new ArrayList<>(face.edges);
+        ArrayList<Edge> edgesToWalk = new ArrayList<>(getValidEdges(face.edges));
         Vertex currentVertex = face.vertices.get(0);
         while (edgesToWalk.size() > 0){
             vertices.add(currentVertex);
             Edge edge = getEdgeFromVertex(currentVertex, edgesToWalk);
-            if(currentVertex == edge.vertexA)
+            if(currentVertex == edge.vertexA) {
                 currentVertex = edge.vertexB;
-            else
+            }
+            else {
                 currentVertex = edge.vertexA;
+            }
             edgesToWalk.remove(edge);
         }
         return new GeometryFactory().createPolygon(vertexToCoords(vertices));
+    }
+
+    private static ArrayList<Edge> getValidEdges(ArrayList<Edge> edges){
+        for(int i =0; i < edges.size(); i++){
+            for(int j =0; j < edges.size(); j++){
+                if(edges.get(i).vertexA == edges.get(j).vertexB && edges.get(i).vertexB == edges.get(j).vertexA){
+                    edges.remove(i);
+                }
+            }
+        }
+        return edges;
     }
 
     private static Coordinate[] vertexToCoords(ArrayList<Vertex> vertices){

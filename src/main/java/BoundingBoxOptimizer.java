@@ -9,13 +9,13 @@ import java.util.Hashtable;
 import java.util.Set;
 
 public class BoundingBoxOptimizer {
+    int i = 0;
     public LandParcel  BoundingBoxOptimization(LandParcel inputParcel, double minArea, double roadLength, double minHousingArea){
         Mesh parcelMesh = new Mesh(inputParcel);
         //Create large and small footprint lists
         ArrayList<Mesh.Face> largeFootprints = new ArrayList<>();
         ArrayList<Mesh.Face> smallFootprints = new ArrayList<>();
         largeFootprints.add(parcelMesh.footprint);
-
         while (largeFootprints.size() != 0){
             // Get Bounding Box
             MinimumDiameter minimumDiameter = new MinimumDiameter(parcelMesh.faceToPolygon(largeFootprints.get(0)));
@@ -42,9 +42,14 @@ public class BoundingBoxOptimizer {
                     Coordinate[] splitLine = getEdgeSplit(boundingBox, false);
                     footprintsNorm = parcelMesh.splitEdge(splitLine[0], splitLine[1], largeFootprints.get(0), roadLength);
                 } catch (Exception e) {
+/*
+                    Mesh.Face face = largeFootprints.get(0);
+                    Polygon poly = Mesh.faceToPolygon(face);
                     SceneRenderer.renderLine(getEdgeSplit(boundingBox, false));
-                    SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)), Color.BLACK);
-                    SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)).getCoordinates());
+                    SceneRenderer.render(poly, Color.BLACK);
+                    SceneRenderer.render(poly.getCoordinates());*/
+
+                    smallFootprints.add(largeFootprints.get(0));
                     largeFootprints.remove(0);
                     System.out.println(e);
                     continue;
@@ -54,11 +59,16 @@ public class BoundingBoxOptimizer {
                     Coordinate[] splitLine = getEdgeSplit(boundingBox, true);
                     footprintsRot = parcelMesh.splitEdge(splitLine[0], splitLine[1], largeFootprints.get(0), roadLength);
                 } catch (Exception e) {
+
+/*
                     SceneRenderer.renderLine(getEdgeSplit(boundingBox, true));
                     SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)), Color.BLACK);
                     SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)).getCoordinates());
+*/
+
+                    smallFootprints.add(largeFootprints.get(0));
                     largeFootprints.remove(0);
-                    System.out.println(e);
+                     System.out.println(e);
                     continue;
                 }
 
@@ -100,14 +110,14 @@ public class BoundingBoxOptimizer {
             Hashtable<Coordinate[], Road> roadsideEdges = footprint.getRoadsideEdges();
             for(Coordinate[] coords : roadsideEdges.keySet()){
                 if(roadsideEdges.get(coords).roadType == Road.RoadType.mainRoad) {
-                    SceneRenderer.renderLine(new Coordinate[]{coords[0], coords[1]});
+                    //SceneRenderer.renderLine(new Coordinate[]{coords[0], coords[1]});
                 } else if(roadsideEdges.get(coords).roadType == Road.RoadType.subRoad){
-                    SceneRenderer.renderWhiteLine(new Coordinate[]{coords[0], coords[1]});
+                    //SceneRenderer.renderWhiteLine(new Coordinate[]{coords[0], coords[1]});
                 }
             }
             inputParcel.footprints.add(footprint);
         }
-
+        i++;
         return inputParcel;
     }
 
@@ -234,7 +244,7 @@ public class BoundingBoxOptimizer {
     }
 
     private Geometry getSimpleGeometry(Geometry geometry){
-        return TopologyPreservingSimplifier.simplify(geometry, 0.01);
+        return DouglasPeuckerSimplifier.simplify(geometry, 0.001);
     }
 
     public static boolean isTriangle(Geometry geometry, double tolerance){

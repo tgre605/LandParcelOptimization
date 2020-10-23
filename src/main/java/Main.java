@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
 
 class DragContext {
 
@@ -24,7 +25,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
@@ -33,29 +34,32 @@ public class Main extends Application {
         int i = 0;
         long startTime = System.currentTimeMillis();
         System.out.println(LandParcels.size());
+        int parcelCount = 1000;
         for (LandParcel parcel : LandParcels) {
-            if(i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169){
+            if (i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169) {
                 parcel.surroundingParcels(reader);
                 boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
             } else {
-                SceneRenderer.render(parcel.polygon, Color.BLACK);
+                //SceneRenderer.render(parcel.polygon, Color.BLACK);
             }
 
             //landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 5, 0.5, 5, 5);
 
             i++;
-            //if(i % 100 == 0)
-            System.out.println("Parcels computed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
+            if(i == parcelCount){
+                break;
+            }
+            System.out.println("Parcels computed: " + i + " in " + (System.currentTimeMillis() - startTime) / 1000 + "s");
         }
         i = 0;
         startTime = System.currentTimeMillis();
         for (LandParcel parcel : LandParcels) {
-            //reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
-            //placer.setRoadCentre(parcel);
-            //placer.surroundingFootprints(parcel);
-            //placer.placeBuildings(parcel, reader);
+            reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+            placer.setRoadCentre(parcel);
+            placer.surroundingFootprints(parcel);
+            placer.placeBuildings(parcel, reader);
 
-            switch (parcel.landType){
+            switch (parcel.landType) {
                 case industry:
                     SceneRenderer.render(parcel.getFootprintGeometries(), SceneRenderer.ColorSpectrum.Yellow);
                     break;
@@ -82,11 +86,11 @@ public class Main extends Application {
             }
 
             i++;
-            if(i == 10){
+
+            if(i == parcelCount){
                 break;
             }
-            //if(i % 100 == 0)
-            System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime)/1000 + "s");
+            System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime) / 1000 + "s");
         }
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);

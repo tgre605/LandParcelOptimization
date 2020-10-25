@@ -110,9 +110,9 @@ public class BoundingBoxOptimizer {
             Hashtable<Coordinate[], Road> roadsideEdges = footprint.getRoadsideEdges();
             for(Coordinate[] coords : roadsideEdges.keySet()){
                 if(roadsideEdges.get(coords).roadType == Road.RoadType.mainRoad) {
-                    //SceneRenderer.renderLine(new Coordinate[]{coords[0], coords[1]});
+                    SceneRenderer.renderLine(new Coordinate[]{coords[0], coords[1]});
                 } else if(roadsideEdges.get(coords).roadType == Road.RoadType.subRoad){
-                    //SceneRenderer.renderWhiteLine(new Coordinate[]{coords[0], coords[1]});
+                    SceneRenderer.renderWhiteLine(new Coordinate[]{coords[0], coords[1]});
                 }
             }
             inputParcel.footprints.add(footprint);

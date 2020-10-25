@@ -25,7 +25,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
@@ -34,11 +34,22 @@ public class Main extends Application {
         int i = 0;
         long startTime = System.currentTimeMillis();
         System.out.println(LandParcels.size());
-        int parcelCount = 1000;
+        int parcelCount = 500;
         for (LandParcel parcel : LandParcels) {
             if (i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169) {
                 parcel.surroundingParcels(reader);
-                boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
+                switch (parcel.landType){
+                    case residential:
+                        boundingBoxOptimizer.BoundingBoxOptimization(parcel, 5, 5, 1.5);
+                        break;
+                    case commercial:
+                        boundingBoxOptimizer.BoundingBoxOptimization(parcel, 4, 5, 1.5);
+                        break;
+                    case industry:
+                        boundingBoxOptimizer.BoundingBoxOptimization(parcel, 7, 5, 1.5);
+                        break;
+                }
+
             } else {
                 //SceneRenderer.render(parcel.polygon, Color.BLACK);
             }
@@ -54,6 +65,7 @@ public class Main extends Application {
         i = 0;
         startTime = System.currentTimeMillis();
         for (LandParcel parcel : LandParcels) {
+
             reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
             placer.setRoadCentre(parcel);
             placer.surroundingFootprints(parcel);
@@ -80,7 +92,7 @@ public class Main extends Application {
                 //}
 
                 if (footprint.building != null) {
-                    SceneRenderer.render(footprint.building.polygon, Color.GREY);
+                    //SceneRenderer.render(footprint.building.polygon, Color.GREY);
                 }
 
             }

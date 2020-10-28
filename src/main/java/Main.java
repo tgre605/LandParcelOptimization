@@ -96,14 +96,14 @@ public class Main extends Application {
                     }
 
                 }
-
-                i++;
-                
-                if (i == parcelCount) {
-                    break;
-                }
-                System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime) / 1000 + "s");
             }
+            i++;
+
+            if (i == parcelCount) {
+                break;
+            }
+            System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime) / 1000 + "s");
+
         }
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);

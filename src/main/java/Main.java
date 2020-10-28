@@ -25,7 +25,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/simpleroadnetwork.json");
+        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
         LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
@@ -34,7 +34,7 @@ public class Main extends Application {
         int i = 0;
         long startTime = System.currentTimeMillis();
         System.out.println(LandParcels.size());
-        int parcelCount = 500;
+        int parcelCount = 100;
         for (LandParcel parcel : LandParcels) {
             if (i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169) {
                 parcel.surroundingParcels(reader);

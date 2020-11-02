@@ -6,10 +6,7 @@ import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
 import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 public class Mesh {
     public static int nextVertexId, nextEdgeId, nextFaceId;
@@ -61,7 +58,7 @@ public class Mesh {
     }
 
     public Face footprint;
-    public  static HashMap<Road, Vertex[]> roads = new HashMap<>();
+    public  static HashMap<Road, Edge> roads = new HashMap<>();
     //public static ArrayList<Road> roads = new ArrayList<>();
 
     public Mesh(LandParcel landParcel){
@@ -72,13 +69,13 @@ public class Mesh {
             face.vertices.add(vertex);
         }
         for (int i =0; i < face.vertices.size()-1; i++){
-            roads.put(new Road(face.vertices.get(i).position, face.vertices.get((i+1) % face.vertices.size()).position, Road.RoadType.mainRoad),
-                    new Vertex[]{face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size())});
-            face.edges.add(new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size()), true));
+            Edge edge = new Edge(face.vertices.get(i), face.vertices.get((i+1) % face.vertices.size()), true);
+            face.edges.add(edge);
+            roads.put(new Road(edge.vertexA.position, edge.vertexB.position, Road.RoadType.mainRoad), edge);
         }
-        face.edges.add(new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1),true));
-        roads.put(new Road(face.vertices.get(0).position, face.vertices.get(face.vertices.size()-1).position, Road.RoadType.mainRoad),
-                new Vertex[]{face.vertices.get(0), face.vertices.get((face.vertices.size()-1) % face.vertices.size())});
+        Edge edge = new Edge(face.vertices.get(0), face.vertices.get(face.vertices.size()-1),true);
+        face.edges.add(edge);
+        roads.put(new Road(edge.vertexA.position, edge.vertexB.position, Road.RoadType.mainRoad), edge);
         footprint = face;
     }
 
@@ -111,8 +108,7 @@ public class Mesh {
         Edge newEdge = new Edge(vertex1, vertex2);
 
         if(vertex1.position.distance(vertex2.position) > roadLength){
-            roads.put(new Road(vertex1.position, vertex2.position, Road.RoadType.subRoad),
-                    new Vertex[] {vertex1, vertex2});
+            roads.put(new Road(vertex1.position, vertex2.position, Road.RoadType.subRoad), newEdge);
             newEdge.roadsideEdge = true;
         }
 
@@ -244,6 +240,7 @@ public class Mesh {
     public static Polygon faceToPolygon(Face face){
         ArrayList<Vertex> vertices = new ArrayList<>();
         ArrayList<Edge> edgesToWalk = new ArrayList<>(getValidEdges(face.edges));
+        //ArrayList<Edge> edgesToWalk = new ArrayList<>(face.edges);
         Vertex currentVertex = face.vertices.get(0);
         while (edgesToWalk.size() > 0){
             vertices.add(currentVertex);
@@ -257,6 +254,57 @@ public class Mesh {
             edgesToWalk.remove(edge);
         }
         return new GeometryFactory().createPolygon(vertexToCoords(vertices));
+    }
+
+    public Road getRoadbyEdge(HashMap<Road, Edge> map, Edge edge){
+        for (Road entry : map.keySet()) {
+            if(map.get(entry) == edge){
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    public void snapRoads(){
+        for(Edge edge : roads.values()){
+            for(Edge otherEdge : roads.values()){
+                if(edge != otherEdge) {
+                    if (getRoadbyEdge(roads, edge).roadType != Road.RoadType.mainRoad && getRoadbyEdge(roads, otherEdge).roadType != Road.RoadType.mainRoad) {
+                        if (edge.vertexA.position.distance(otherEdge.vertexA.position) < 0.05) {
+                            Coordinate midPoint = midPoint(edge.vertexA.position, edge.vertexA.position);
+                            edge.vertexA.position = midPoint;
+                            otherEdge.vertexA.position = midPoint;
+                        } else if (edge.vertexA.position.distance(otherEdge.vertexB.position) < 0.05) {
+                            Coordinate midPoint = midPoint(edge.vertexA.position, edge.vertexB.position);
+                            edge.vertexA.position = midPoint;
+                            otherEdge.vertexB.position = midPoint;
+                        } else if (edge.vertexB.position.distance(otherEdge.vertexA.position) < 0.05) {
+                            Coordinate midPoint = midPoint(edge.vertexB.position, edge.vertexA.position);
+                            edge.vertexB.position = midPoint;
+                            otherEdge.vertexA.position = midPoint;
+                        } else if (edge.vertexB.position.distance(otherEdge.vertexB.position) < 0.05) {
+                            Coordinate midPoint = midPoint(edge.vertexB.position, edge.vertexB.position);
+                            edge.vertexB.position = midPoint;
+                            otherEdge.vertexB.position = midPoint;
+                        }
+                    }
+                }
+            }
+        }
+/*        for(Road road : roads.keySet()){
+            Edge edge = roads.get(road);
+            if(road.roadType == Road.RoadType.subRoad) {
+                if (edge.vertexA.position.distance(edge.vertexB.position) < 2) {
+                    System.out.println(edge.vertexA.position.distance(edge.vertexB.position));
+                    edge.vertexA.position = midPoint(edge.vertexA.position, edge.vertexB.position);
+                    edge.vertexB.position = midPoint(edge.vertexA.position, edge.vertexB.position);
+                }
+            }
+        }*/
+    }
+
+    public Coordinate midPoint(Coordinate a, Coordinate b){
+        return new Coordinate((a.x + b.x)/2, (a.y + b.y)/2);
     }
 
     private static ArrayList<Edge> getValidEdges(ArrayList<Edge> edges){

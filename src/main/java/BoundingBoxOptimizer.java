@@ -42,12 +42,6 @@ public class BoundingBoxOptimizer {
                     Coordinate[] splitLine = getEdgeSplit(boundingBox, false);
                     footprintsNorm = parcelMesh.splitEdge(splitLine[0], splitLine[1], largeFootprints.get(0), roadLength);
                 } catch (Exception e) {
-/*
-                    Mesh.Face face = largeFootprints.get(0);
-                    Polygon poly = Mesh.faceToPolygon(face);
-                    SceneRenderer.renderLine(getEdgeSplit(boundingBox, false));
-                    SceneRenderer.render(poly, Color.BLACK);
-                    SceneRenderer.render(poly.getCoordinates());*/
 
                     smallFootprints.add(largeFootprints.get(0));
                     largeFootprints.remove(0);
@@ -59,16 +53,8 @@ public class BoundingBoxOptimizer {
                     Coordinate[] splitLine = getEdgeSplit(boundingBox, true);
                     footprintsRot = parcelMesh.splitEdge(splitLine[0], splitLine[1], largeFootprints.get(0), roadLength);
                 } catch (Exception e) {
-
-/*
-                    SceneRenderer.renderLine(getEdgeSplit(boundingBox, true));
-                    SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)), Color.BLACK);
-                    SceneRenderer.render(Mesh.faceToPolygon(largeFootprints.get(0)).getCoordinates());
-*/
-
                     smallFootprints.add(largeFootprints.get(0));
                     largeFootprints.remove(0);
-                     System.out.println(e);
                     continue;
                 }
 
@@ -99,6 +85,8 @@ public class BoundingBoxOptimizer {
 
             largeFootprints.remove(0);
         }
+
+        //parcelMesh.snapRoads();
 
         for (Mesh.Face face : smallFootprints) {
             Polygon polygon = parcelMesh.faceToPolygon(face);

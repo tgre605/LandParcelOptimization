@@ -158,7 +158,7 @@ public class SceneRenderer {
         //Creating a Group object
         Pane root = new Pane();
         Path currentDir = Paths.get(".");
-        FileInputStream input = new FileInputStream(currentDir.toAbsolutePath() + "/input/water_map.png");
+        FileInputStream input = new FileInputStream(FileReading.getWaterMap());
 
         Image image = new Image(input);
         ImageView imageView = new ImageView(image);

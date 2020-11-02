@@ -4,6 +4,8 @@ import javafx.stage.Stage;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 
+import java.io.FileReader;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -22,19 +24,19 @@ class DragContext {
 
 
 public class Main extends Application {
+    static  String inputFile = "";
     @Override
     public void start(Stage stage) throws Exception {
-        Path currentDir = Paths.get(".");
-        JsonReader reader = new JsonReader(currentDir.toAbsolutePath() + "/input/roadnetwork.json");
+        JsonReader reader = new JsonReader(FileReading.getRoadNetwork(inputFile));
         ArrayList<LandParcel> LandParcels = reader.getParcels();
         BoundingBoxOptimizer boundingBoxOptimizer = new BoundingBoxOptimizer();
-        LandParcelOptimizer landParcelOptimizer = new LandParcelOptimizer();
         BuildingPlacer placer = new BuildingPlacer();
         SceneRenderer sceneRenderer = new SceneRenderer();
         int i = 0;
         long startTime = System.currentTimeMillis();
-        System.out.println(LandParcels.size());
-        int parcelCount = 1169;
+        System.out.println("Number of parcels in file: " + LandParcels.size());
+        int parcelCount = 20;
+
         for (LandParcel parcel : LandParcels) {
             if (i != 110 && i != 247 && i != 287 && i != 299 && i != 427 && i != 439 && i != 954 && i != 1010 && i != 1169) {
                 parcel.surroundingParcels(reader);
@@ -51,7 +53,7 @@ public class Main extends Application {
                 }
 
             } else {
-                //SceneRenderer.render(parcel.polygon, Color.BLACK);
+                //SceneRenderer.render(parcel.polygon, Color.WHITESMOKE);
             }
 
             //landParcelOptimizer.BoundingBoxOptimization(parcel, 5, 5, 0.5, 5, 5);
@@ -65,8 +67,8 @@ public class Main extends Application {
         i = 0;
         startTime = System.currentTimeMillis();
         for (LandParcel parcel : LandParcels) {
-            if (i != 370 && i != 790 && i != 526) {
-                reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+            if (i != 5 && i != 370 && i != 790 && i != 526) {
+                reader.getBuildingFootprints(FileReading.getBuildingFile());
                 placer.setRoadCentre(parcel);
                 placer.surroundingFootprints(parcel);
                 placer.placeBuildings(parcel, reader);
@@ -105,12 +107,19 @@ public class Main extends Application {
             System.out.println("Buildings placed: " + i + " in " + (System.currentTimeMillis() - startTime) / 1000 + "s");
 
         }
+        //reader.getBuildingFootprints(currentDir.toAbsolutePath() + "/input/buildingFootprints.json");
+        //placer.DrawBuildings(reader);
         System.out.println("Finished Computing");
         sceneRenderer.start(stage);
 
     }
 
     public static void main(String[] args) {
+        try {
+            inputFile = args[0];
+        } catch (ArrayIndexOutOfBoundsException e){
+            inputFile = "simpleroadnetwork.json";
+        }
         launch(args);
     }
 }

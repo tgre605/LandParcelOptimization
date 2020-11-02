@@ -13,7 +13,6 @@ import java.util.*;
 public class LandParcelOptimizer {
 
     public double triangleTolerance = 0.25;
-/*
     public LandParcel BoundingBoxOptimizationMESH(LandParcel inputParcel, double minArea, double minStreetWidth, double streetAccessLevel, double triangleMinArea, double roadLength){
         ArrayList<Geometry> largeFootprints = new ArrayList<>();
         ArrayList<Geometry> smallFootprints = new ArrayList<>();
@@ -147,7 +146,8 @@ public class LandParcelOptimizer {
         }
 
         return inputParcel;
-    }*/
+    }
+
 
     private Coordinate[] getMidLine(Geometry boundingBox, boolean switchEdge){
         Coordinate[] coordinates = boundingBox.getCoordinates();
@@ -349,8 +349,7 @@ public class LandParcelOptimizer {
         }
         return new Geometry[]{rectangleA, rectangleB};
    }
-/*
-    Polygon snapRoads(Footprint footprint, LandParcel parcel){
+/*    Polygon snapRoads(Footprint footprint, LandParcel parcel){
         List<Coordinate> coordinates = Arrays.asList(footprint.geometry.getCoordinates());
         for(Coordinate[] roads : footprint.roadsideEdges.keySet()){
             Road road = footprint.roadsideEdges.get(roads);
@@ -416,6 +415,7 @@ public class LandParcelOptimizer {
         coordinates.set(coordinates.size() - 1, coordinates.get(0));
         return new GeometryFactory().createPolygon(coordinates.toArray(new Coordinate[0]));
     }*/
+
 
     Coordinate getMidPoint(Coordinate coordinateA, Coordinate coordinateB){
         return new Coordinate((coordinateA.x + coordinateB.x) / 2, (coordinateA.y + coordinateB.y) /2);

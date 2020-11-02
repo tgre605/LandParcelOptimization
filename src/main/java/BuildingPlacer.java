@@ -1,6 +1,8 @@
+import javafx.scene.paint.Color;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.AffineTransformation;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -9,6 +11,33 @@ public class BuildingPlacer {
     ArrayList<Geometry> RBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> CBuildingFootprints = new ArrayList<>();
     ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
+
+    public void DrawBuildings(JsonReader reader){
+        RBuildingFootprints = reader.RBuildingFootprints;
+        CBuildingFootprints = reader.CBuildingFootprints;
+        IBuildingFootprints = reader.IBuildingFootprints;
+        for(int x = 0; x < RBuildingFootprints.size(); x++){
+            Geometry geometry = RBuildingFootprints.get(x);
+            AffineTransformation at = AffineTransformation.scaleInstance( 5, 5);
+            at.translate( x * 25, 0);
+            geometry = at.transform(geometry);
+            SceneRenderer.render(geometry, Color.GREY);
+        }
+        for(int x = 0; x < CBuildingFootprints.size(); x++){
+            Geometry geometry = CBuildingFootprints.get(x);
+            AffineTransformation at = AffineTransformation.scaleInstance( 5, 5);
+            at.translate( x * 25, 40);
+            geometry = at.transform(geometry);
+            SceneRenderer.render(geometry, Color.GREY);
+        }
+        for(int x = 0; x < IBuildingFootprints.size(); x++){
+            Geometry geometry = IBuildingFootprints.get(x);
+            AffineTransformation at = AffineTransformation.scaleInstance( 5, 5);
+            at.translate( x * 25, 80);
+            geometry = at.transform(geometry);
+            SceneRenderer.render(geometry, Color.GREY);
+        }
+    }
 
     public void placeBuildings(LandParcel landParcel, JsonReader reader){
         RBuildingFootprints = reader.RBuildingFootprints;

@@ -12,6 +12,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import org.lwjgl.system.CallbackI;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -36,15 +37,14 @@ public class JsonReader {
     ArrayList<Geometry> IBuildingFootprints = new ArrayList<>();
 
 
-    public JsonReader(String file) throws IOException {
+    public JsonReader(File file) throws IOException {
         for(int i = 0; i < gridWidth; i++){
             for(int j = 0; j < gridHeight; j++){
                 world[i][j] = new ArrayList<LandParcel>();
             }
         }
         JSONParser jsonParser = new JSONParser();
-        Path currentDir = Paths.get(".");
-        BufferedImage img = ImageIO.read(new File(currentDir.toAbsolutePath() + "/input/water_map.png"));
+        BufferedImage img = ImageIO.read(FileReading.getWaterMap());
         int width = img.getWidth();
         int height = img.getHeight();
         try (FileReader reader = new FileReader(file)){
@@ -124,7 +124,7 @@ public class JsonReader {
         return xyPoints;
     }
     
-    public void getBuildingFootprints(String file){
+    public void getBuildingFootprints(File file){
         JSONParser jsonParser = new JSONParser();
         try (FileReader reader = new FileReader(file)){
             Object obj = jsonParser.parse(reader);

@@ -67,7 +67,7 @@ public class Main extends Application {
         i = 0;
         startTime = System.currentTimeMillis();
         for (LandParcel parcel : LandParcels) {
-            if (i != 5 && i != 370 && i != 790 && i != 526) {
+            if (i != 5 && i != 370 && i != 790 && i != 526 && i != 1076) {
                 reader.getBuildingFootprints(FileReading.getBuildingFile());
                 placer.setRoadCentre(parcel);
                 placer.surroundingFootprints(parcel);

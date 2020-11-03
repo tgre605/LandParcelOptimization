@@ -1,5 +1,7 @@
 # LandParcelOptimization
 
+For most up to date Java files used for development, please see repository at https://github.com/tgre605/LandParcelOptimization
+
 ## How to run Land Parcel Optimizer via precompiled jar file
 
 Ensure running Java 8 or newer
